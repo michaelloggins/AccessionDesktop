@@ -1,0 +1,15 @@
+Process this scanned veterinary requisition form. Extract and return JSON:
+{
+  "patient": {"name": "", "species": "", "breed": "", "dob": ""},
+  "owner": {"name": ""},
+  "ordering": {"physician": "", "facility": "", "facility_id": "", "npi": ""},
+  "specimen": {"type": "", "collection_date": "", "storage_temp": ""},
+  "tests": [{"code": "", "name": "", "specimen_type": ""}],
+  "priority": "",
+  "diagnosis_codes": [],
+  "specimen_id": "",
+  "laboratory_contact": "",
+  "phone": "",
+  "fax": "",
+  "email": ""
+}

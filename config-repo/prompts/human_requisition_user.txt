@@ -1,0 +1,13 @@
+Process this scanned medical test requisition form. Extract and return JSON:
+{
+  "patient": {"last_name": "", "first_name": "", "middle_name": "", "dob": "", "accession_id": ""},
+  "ordering": {"physician": "", "facility": "", "facility_id": "", "npi": ""},
+  "specimen": {"type": "", "collection_date": "", "storage_temp": ""},
+  "tests": [{"code": "", "name": "", "specimen_type": ""}],
+  "priority": "",
+  "diagnosis_codes": [],
+  "laboratory_contact": "",
+  "phone": "",
+  "fax": "",
+  "email": ""
+}

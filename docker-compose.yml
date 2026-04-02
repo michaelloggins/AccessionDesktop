@@ -1,0 +1,50 @@
+# docker-compose.yml — Base configuration (shared by dev and prod)
+# Usage:
+#   Dev:  docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   Prod: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+services:
+  scan-app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./config-repo:/app/config:ro
+      - ./data:/app/data:ro
+      - ./queue:/app/queue
+      - ./logs:/app/logs
+    environment:
+      - OCR_API_URL=http://ocr:8080
+      - APIM_BASE_URL=${APIM_BASE_URL:-https://mvd-apim.azure-api.net}
+      - APIM_SUBSCRIPTION_KEY=${APIM_SUBSCRIPTION_KEY:-}
+      - STATION_ID=${STATION_ID:-DEV-01}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    depends_on:
+      ocr:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    depends_on:
+      scan-app:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # The 'ocr' service is defined in the dev/prod override files
+  # Dev:  mock-ocr (no GPU required)
+  # Prod: PaddleOCR-VL 1.5 (NVIDIA GPU required)

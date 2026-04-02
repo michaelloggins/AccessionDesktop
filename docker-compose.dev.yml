@@ -1,0 +1,55 @@
+# docker-compose.dev.yml — Development overrides (no GPU required)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+#
+# Provides a mock OCR service that returns realistic sample data
+# so you can develop the full workflow without an NVIDIA GPU.
+
+services:
+  scan-app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend/app:/app/app  # Hot reload
+    environment:
+      - LOG_LEVEL=DEBUG
+      - APIM_BASE_URL=http://mock-apim:8081  # Use mock APIM in dev
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5000", "--reload"]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend/src:/app/src              # Hot reload for components
+      - ./frontend/index.html:/app/index.html  # Root HTML
+      - ./frontend/vite.config.js:/app/vite.config.js
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+
+  ocr:
+    build:
+      context: ./mock-ocr
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  mock-apim:
+    build:
+      context: ./mock-apim
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped

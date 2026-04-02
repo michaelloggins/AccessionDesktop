@@ -1,0 +1,28 @@
+{
+  "required_fields": [
+    "patient.name",
+    "ordering.customer_id",
+    "specimen.type",
+    "tests"
+  ],
+  "format_checks": {
+    "patient.dob": {
+      "pattern": "^(0[1-9]|1[0-2])/(0[1-9]|[12]\\d|3[01])/(19|20)\\d{2}$",
+      "message": "DOB must be in MM/DD/YYYY format",
+      "severity": "warning"
+    },
+    "patient.mrn": {
+      "pattern": "^[A-Za-z0-9\\-]+$",
+      "message": "MRN/Specimen ID should be alphanumeric",
+      "severity": "warning"
+    },
+    "ordering.npi": {
+      "pattern": "^\\d{10}$",
+      "message": "NPI must be exactly 10 digits",
+      "severity": "warning"
+    }
+  },
+  "valid_species": ["Human", "Canine", "Feline", "Equine", "Avian", "Other"],
+  "valid_priorities": ["Routine", "STAT"],
+  "valid_storage_temps": ["STORED AMBIENT", "STORED FROZEN", "STORED REFRIGERATED"]
+}

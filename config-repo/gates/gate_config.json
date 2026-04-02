@@ -1,0 +1,27 @@
+{
+  "gates": [
+    {
+      "id": "pre-scan-specimen-ready",
+      "name": "Specimen Ready Check",
+      "trigger": "before_scan",
+      "endpoint": "/api/gates/pre-scan",
+      "method": "POST",
+      "required": true,
+      "allow_override": false,
+      "timeout_ms": 5000,
+      "on_timeout": "warn"
+    },
+    {
+      "id": "pre-submit-fulcrum-status",
+      "name": "Fulcrum Specimen Status",
+      "trigger": "before_submit",
+      "endpoint": "/api/gates/pre-submit",
+      "method": "POST",
+      "required": true,
+      "allow_override": true,
+      "override_role": "supervisor",
+      "timeout_ms": 5000,
+      "on_timeout": "warn"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+[
+  {"code": "310", "name": "Histoplasma EIA", "category": "antigen", "specimen_types": ["UR", "SER", "PLS", "CSF", "BAL"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.8},
+  {"code": "316", "name": "Blastomyces EIA", "category": "antigen", "specimen_types": ["UR", "SER", "PLS", "CSF", "BAL"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.8},
+  {"code": "315", "name": "Coccidioides EIA", "category": "antigen", "specimen_types": ["UR", "SER", "PLS", "CSF", "BAL"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.8},
+  {"code": "309", "name": "Aspergillus EIA", "category": "antigen", "specimen_types": ["SER", "CSF", "BAL"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.4},
+  {"code": "319", "name": "Cryptococcus LA", "category": "antigen", "specimen_types": ["SER", "CSF"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.25},
+  {"code": "317", "name": "Beta-D-Glucan (BDG)", "category": "antigen", "specimen_types": ["SER", "CSF"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.25},
+
+  {"code": "326", "name": "Histoplasma IgG/IgM EIA", "category": "antibody", "specimen_types": ["SER", "PLS", "CSF"], "species": ["human"], "min_volume_ml": 0.25},
+  {"code": "331", "name": "Blastomyces IgG EIA", "category": "antibody", "specimen_types": ["SER", "PLS"], "species": ["human"], "min_volume_ml": 0.25},
+  {"code": "325", "name": "Coccidioides IgG/IgM EIA", "category": "antibody", "specimen_types": ["SER", "PLS", "CSF"], "species": ["human"], "min_volume_ml": 0.25},
+  {"code": "321", "name": "Histoplasma ID", "category": "antibody", "specimen_types": ["SER", "PLS", "CSF"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.25},
+  {"code": "322", "name": "Blastomyces ID", "category": "antibody", "specimen_types": ["SER", "PLS", "CSF"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.25},
+  {"code": "320", "name": "Coccidioides ID", "category": "antibody", "specimen_types": ["SER", "PLS", "CSF"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.25},
+  {"code": "324", "name": "Aspergillus ID", "category": "antibody", "specimen_types": ["SER", "PLS", "CSF"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.25},
+
+  {"code": "327", "name": "Histoplasma IgG EIA (K9)", "category": "antibody", "specimen_types": ["SER", "PLS", "CSF"], "species": ["canine"], "min_volume_ml": 0.25},
+  {"code": "328", "name": "Histoplasma IgG EIA (Fel)", "category": "antibody", "specimen_types": ["SER", "PLS", "CSF"], "species": ["feline"], "min_volume_ml": 0.25},
+  {"code": "330", "name": "Blastomyces IgG EIA (K9)", "category": "antibody", "specimen_types": ["SER", "PLS", "CSF"], "species": ["canine"], "min_volume_ml": 0.25},
+  {"code": "329", "name": "Coccidioides IgG EIA (K9)", "category": "antibody", "specimen_types": ["SER", "PLS", "CSF"], "species": ["canine"], "min_volume_ml": 0.25},
+  {"code": "332", "name": "Pythium IgG EIA (K9/Fel)", "category": "antibody", "specimen_types": ["SER", "PLS"], "species": ["canine", "feline"], "min_volume_ml": 0.25},
+
+  {"code": "403", "name": "Histoplasma PCR", "category": "molecular", "specimen_types": ["BAL"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.5},
+  {"code": "404", "name": "Blastomyces PCR", "category": "molecular", "specimen_types": ["BAL"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.5},
+  {"code": "405", "name": "Coccidioides PCR", "category": "molecular", "specimen_types": ["BAL"], "species": ["human", "canine", "feline"], "min_volume_ml": 0.5},
+  {"code": "402", "name": "Pneumocystis PCR", "category": "molecular", "specimen_types": ["BAL"], "species": ["human"], "min_volume_ml": 0.5},
+  {"code": "406", "name": "Pneumocystis PCR (K9)", "category": "molecular", "specimen_types": ["BAL"], "species": ["canine"], "min_volume_ml": 0.5},
+
+  {"code": "312", "name": "Itraconazole Bioassay", "category": "drug_monitoring", "specimen_types": ["SER"], "species": ["canine", "feline"], "min_volume_ml": 0.25},
+
+  {"code": "1000", "name": "Pulmonary Fungal PCR Panel", "category": "panel", "specimen_types": ["BAL"], "species": ["human"], "includes": ["403", "404", "405", "402"], "min_volume_ml": 0.5},
+  {"code": "906", "name": "Pulmonary Fungal PCR Panel (Vet)", "category": "panel", "specimen_types": ["BAL"], "species": ["canine", "feline"], "includes": ["403", "404", "405", "406"], "min_volume_ml": 0.5},
+
+  {"code": "900", "name": "Fel Fungal, Ext", "category": "panel", "specimen_types": ["UR", "SER"], "species": ["feline"], "includes": ["310", "319", "320", "309"]},
+  {"code": "901", "name": "K9 Fungal West, Ext", "category": "panel", "specimen_types": ["UR", "SER"], "species": ["canine"], "includes": ["310", "329", "309", "319"]},
+  {"code": "902", "name": "K9 Fungal East, Ext", "category": "panel", "specimen_types": ["UR", "SER"], "species": ["canine"], "includes": ["316", "329", "309", "319"]},
+  {"code": "905", "name": "K9 Fungal East", "category": "panel", "specimen_types": ["UR", "SER"], "species": ["canine"], "includes": ["316", "319", "309"]},
+  {"code": "904", "name": "K9 Fungal West", "category": "panel", "specimen_types": ["UR", "SER"], "species": ["canine"], "includes": ["310", "329", "309"]},
+  {"code": "908", "name": "K9 Fungal, Comp", "category": "panel", "specimen_types": ["UR", "SER"], "species": ["canine"], "includes": ["316", "309", "319", "329", "327", "330", "320"]},
+  {"code": "909", "name": "Fel Fungal, Comp", "category": "panel", "specimen_types": ["UR", "SER"], "species": ["feline"], "includes": ["310", "309", "319", "328", "320"]},
+  {"code": "910", "name": "K9 Blastomycosis", "category": "panel", "specimen_types": ["UR", "SER"], "species": ["canine"], "includes": ["316", "330"]},
+  {"code": "911", "name": "K9 Histoplasmosis", "category": "panel", "specimen_types": ["UR", "SER"], "species": ["canine"], "includes": ["310", "327"]},
+  {"code": "913", "name": "Fel Histoplasmosis", "category": "panel", "specimen_types": ["UR", "SER"], "species": ["feline"], "includes": ["310", "328"]}
+]

@@ -1,0 +1,26 @@
+# FastAPI + server
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+python-multipart==0.0.20
+
+# HTTP client (for OCR, APIM calls)
+httpx==0.28.1
+
+# Data validation
+pydantic==2.11.2
+pydantic-settings==2.9.1
+
+# File handling
+python-magic==0.4.27      # File type detection (uses libmagic)
+Pillow==11.2.1            # Image processing
+
+# TWAIN scanning (Windows only)
+# twainlib is installed separately — see docs
+
+# Logging
+structlog==25.1.0
+
+# Testing
+pytest==8.3.5
+pytest-asyncio==0.25.3
+httpx  # also used as test client

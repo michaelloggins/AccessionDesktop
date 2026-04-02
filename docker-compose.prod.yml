@@ -1,0 +1,33 @@
+# docker-compose.prod.yml — Production overrides (NVIDIA GPU scan stations)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Runs real PaddleOCR-VL 1.5 with GPU acceleration.
+# Requires: NVIDIA RTX 3060+ (8 GB VRAM), CUDA 12.6+, NVIDIA Container Toolkit
+
+services:
+  scan-app:
+    image: mvdacr.azurecr.io/scan-web-app:latest
+    environment:
+      - LOG_LEVEL=INFO
+
+  frontend:
+    image: mvdacr.azurecr.io/scan-frontend:latest
+
+  ocr:
+    image: ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-vl:latest-nvidia-gpu
+    ports:
+      - "8080:8080"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s  # Model loading takes time on first start
+    restart: unless-stopped

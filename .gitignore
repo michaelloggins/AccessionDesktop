@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# Node / React
+node_modules/
+frontend/dist/
+frontend/build/
+.npm
+*.tsbuildinfo
+
+# Docker
+.docker/
+
+# Environment / Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs
+logs/*.log
+
+# Offline queue (runtime data, not source)
+queue/pending/*.json
+
+# Data files — runtime sync state (not committed)
+data/last_sync.json
+# Note: customer_master.json and physician_npi.json ARE committed as dev seed data.
+# On scan stations, they are overwritten by Azure Blob sync.
+
+# Scanned images (never commit PHI)
+scans/
+*.tiff
+*.tif
+
+# Zip archive in docs (redundant)
+docs/files.zip

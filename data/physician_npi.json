@@ -1,0 +1,6 @@
+[
+  {"name": "Dr. Amanda Chen", "npi": "1234567890", "specialty": "Veterinary Medicine", "facility_code": "BAN-1247"},
+  {"name": "Dr. Robert Kim", "npi": "9876543210", "specialty": "Veterinary Emergency", "facility_code": "INDYVET"},
+  {"name": "Dr. Lisa Patel", "npi": "5678901234", "specialty": "Veterinary Internal Medicine", "facility_code": "VCA-SHADE"},
+  {"name": "Dr. James Wilson", "npi": "1111222233", "specialty": "Internal Medicine", "facility_code": "IUH-METH"}
+]

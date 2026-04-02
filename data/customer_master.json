@@ -1,0 +1,53 @@
+[
+  {
+    "customer_id": "CUST-1042",
+    "name": "IU Health Methodist",
+    "facility_code": "IUH-METH",
+    "account_type": "human_clinical",
+    "address": {"street": "1701 N Senate Blvd", "city": "Indianapolis", "state": "IN", "zip": "46202"},
+    "phone": "317-555-0142",
+    "contacts": [{"name": "Jane Smith", "role": "Lab Director", "email": "jsmith@iuhealth.org"}],
+    "default_tests": ["310", "316"],
+    "preferred_specimen_types": ["SER", "UR"],
+    "active": true
+  },
+  {
+    "customer_id": "CUST-2087",
+    "name": "Banfield Pet Hospital #1247",
+    "facility_code": "BAN-1247",
+    "account_type": "veterinary",
+    "address": {"street": "8102 E 96th St", "city": "Fishers", "state": "IN", "zip": "46037"},
+    "phone": "317-555-0287",
+    "contacts": [],
+    "default_tests": ["310"],
+    "preferred_specimen_types": ["SER", "UR"],
+    "species_supported": ["Canine", "Feline"],
+    "active": true
+  },
+  {
+    "customer_id": "CUST-3001",
+    "name": "IndyVet Emergency & Specialty",
+    "facility_code": "INDYVET",
+    "account_type": "veterinary",
+    "address": {"street": "5425 Victory Dr", "city": "Indianapolis", "state": "IN", "zip": "46203"},
+    "phone": "317-555-0301",
+    "contacts": [],
+    "default_tests": ["310", "316"],
+    "preferred_specimen_types": ["SER", "UR", "BAL"],
+    "species_supported": ["Canine", "Feline"],
+    "active": true
+  },
+  {
+    "customer_id": "CUST-3050",
+    "name": "VCA Shadeland Animal Hospital",
+    "facility_code": "VCA-SHADE",
+    "account_type": "veterinary",
+    "address": {"street": "7225 Shadeland Station", "city": "Indianapolis", "state": "IN", "zip": "46256"},
+    "phone": "317-555-3050",
+    "contacts": [],
+    "default_tests": ["310"],
+    "preferred_specimen_types": ["SER", "UR"],
+    "species_supported": ["Canine", "Feline"],
+    "active": true
+  }
+]
