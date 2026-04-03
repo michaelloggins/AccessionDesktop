@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     log_path: str = "/app/logs"
 
     # Timeouts (ms)
-    ocr_timeout_ms: int = 30000
+    ocr_timeout_ms: int = 600000  # 10 min — CPU inference is very slow
     gate_timeout_ms: int = 5000
 
     # Logging
