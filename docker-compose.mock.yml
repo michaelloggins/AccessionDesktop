@@ -1,0 +1,18 @@
+# docker-compose.mock.yml — Use mock OCR for fast UI development
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.mock.yml up --build
+
+services:
+  ocr:
+    build:
+      context: ./mock-ocr
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes: []  # Override the paddleocr-cpu volumes
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped

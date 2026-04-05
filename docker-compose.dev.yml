@@ -41,7 +41,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 30s   # Model loading takes time on CPU
+      start_period: 180s  # Model pre-loads at startup (~90s)
     restart: unless-stopped
 
   mock-apim:

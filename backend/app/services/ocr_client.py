@@ -32,7 +32,9 @@ async def extract_from_image(image_bytes: bytes, filename: str) -> OcrExtraction
       1. Call /ocr endpoint → get raw Markdown
       2. Parse Markdown into accession fields (heuristic + prompt-based)
     """
-    timeout = settings.ocr_timeout_ms / 1000.0
+    timeout_secs = settings.ocr_timeout_ms / 1000.0
+    # Explicit timeout: short connect, long read (CPU inference is slow)
+    timeout = httpx.Timeout(connect=30.0, read=timeout_secs, write=30.0, pool=timeout_secs)
 
     async with httpx.AsyncClient(timeout=timeout) as client:
         # Step 1: Send image to OCR
@@ -50,9 +52,14 @@ async def extract_from_image(image_bytes: bytes, filename: str) -> OcrExtraction
     extraction = _parse_markdown_to_fields(raw_markdown)
     extraction.raw_markdown = raw_markdown
 
-    logger.info(
-        "OCR extraction complete",
-        extra={"source_file": filename, "ocr_confidence": extraction.confidence},
+    logger.info("OCR extraction complete — confidence=%.2f", extraction.confidence)
+    logger.debug("Raw OCR markdown:\n%s", raw_markdown[:2000])
+    logger.debug(
+        "Parsed fields: patient=%s, physician=%s, specimen=%s, tests=%d",
+        extraction.patient.name,
+        extraction.ordering.physician,
+        extraction.specimen.type,
+        len(extraction.tests),
     )
     return extraction
 

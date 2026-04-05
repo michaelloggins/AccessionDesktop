@@ -11,6 +11,7 @@ export default defineConfig({
       "/api": {
         target: process.env.API_PROXY_TARGET || "http://localhost:5000",
         changeOrigin: true,
+        timeout: 1800000,  // 30 min — CPU OCR is very slow
       },
     },
   },

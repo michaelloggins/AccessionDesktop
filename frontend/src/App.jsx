@@ -1,24 +1,19 @@
 /**
  * App — Root component for the MVD Accessioning Workstation.
  *
- * Manages the workflow steps: scan → review → validate → submit → done
+ * Two-panel layout: scan/upload panel on the left, form on the right.
+ * Tab bar switches between "New Accession" and "Today's Queue".
  */
-
+import { useState, useEffect } from "react";
+import { MV } from "./theme";
 import useAccession from "./hooks/useAccession";
-import ScanUpload from "./components/ScanUpload";
+import ScanPanel from "./components/ScanPanel";
 import AccessionForm from "./components/AccessionForm";
-import GateStatus from "./components/GateStatus";
-import ValidationDisplay from "./components/ValidationDisplay";
-
-const STEP_LABELS = {
-  scan: "1. Scan / Upload",
-  review: "2. Review & Edit",
-  validate: "3. Validate",
-  submit: "4. Submit",
-  done: "5. Complete",
-};
+import QueueView from "./components/QueueView";
 
 export default function App() {
+  const [tab, setTab] = useState("accession");
+
   const {
     step,
     extraction,
@@ -37,120 +32,151 @@ export default function App() {
     reset,
   } = useAccession();
 
-  const handleOverride = (gateId, supervisorId, reason) => {
-    // In a full implementation, this would update the gate result with override info
-    console.log("Override:", gateId, supervisorId, reason);
+  // Track which fields the operator has manually edited
+  const [editedFields, setEditedFields] = useState(new Set());
+
+  // Build confidence map from extraction
+  const confidences = {};
+  if (extraction) {
+    const conf = extraction.confidence || 0;
+    // Apply overall confidence to all extracted fields
+    if (extraction.patient?.name) confidences.patient_name = conf;
+    if (extraction.patient?.species) confidences.species = conf;
+    if (extraction.patient?.breed) confidences.breed = conf;
+    if (extraction.patient?.owner_name) confidences.owner_name = conf;
+    if (extraction.patient?.dob) confidences.dob = conf;
+    if (extraction.patient?.mrn) confidences.mrn = conf;
+    if (extraction.ordering?.physician) confidences.physician = conf;
+    if (extraction.ordering?.npi) confidences.npi = conf;
+    if (extraction.specimen?.type) confidences.specimen_type = conf;
+    if (extraction.specimen?.collection_date) confidences.collection_date = conf;
+  }
+
+  // Wrap updateFormSection to track edits
+  const handleUpdateSection = (section, updates) => {
+    Object.keys(updates).forEach((k) => {
+      setEditedFields((prev) => new Set([...prev, k]));
+    });
+    updateFormSection(section, updates);
   };
 
+  const handleReset = () => {
+    reset();
+    setEditedFields(new Set());
+  };
+
+  const handleValidateAndSubmit = async () => {
+    await runGateCheck("before_submit");
+    const result = await validate();
+    if (result?.valid) {
+      await submit();
+    }
+  };
+
+  const scanComplete = step === "review" || step === "validate" || step === "submit" || step === "done";
+  const submitReady = step === "submit";
+
+  // Load Roboto Condensed font
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.href = "https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;500;600;700&display=swap";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+  }, []);
+
   return (
-    <div className="mx-auto min-h-screen max-w-4xl p-6">
+    <div
+      className="flex flex-col min-h-screen"
+      style={{ fontFamily: "'Roboto Condensed', Helvetica, Arial, sans-serif", color: MV.text, backgroundColor: MV.offWhite }}
+    >
       {/* Header */}
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
-          MiraVista Diagnostics
-        </h1>
-        <p className="text-sm text-gray-500">Accessioning Workstation</p>
+      <header
+        className="h-[52px] flex items-center justify-between px-6 flex-shrink-0"
+        style={{ background: MV.greenGrad }}
+      >
+        <div className="flex items-center gap-5">
+          <div className="flex items-center gap-2.5">
+            <svg width="28" height="28" viewBox="0 0 28 28">
+              <circle cx="14" cy="14" r="13" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+              <text x="14" y="18" textAnchor="middle" fill="white" fontSize="14" fontWeight="700">M</text>
+            </svg>
+            <div>
+              <div className="text-base font-bold text-white leading-none tracking-tight">MiraVista Diagnostics</div>
+              <div className="text-[10px] font-medium uppercase text-white/70" style={{ letterSpacing: "0.08em" }}>
+                Accessioning Workstation
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/15">
+            <div className="w-[7px] h-[7px] rounded-full bg-green-400" />
+            <span className="text-xs text-white font-medium">Online</span>
+          </div>
+          <div className="w-px h-5 bg-white/25" />
+          <span className="text-[13px] text-white/85">Station DEV-01</span>
+        </div>
       </header>
 
-      {/* Step indicator */}
-      <nav className="mb-8 flex gap-2">
-        {Object.entries(STEP_LABELS).map(([key, label]) => (
-          <div
-            key={key}
-            className={`flex-1 rounded-lg px-3 py-2 text-center text-xs font-medium ${
-              step === key
-                ? "bg-blue-600 text-white"
-                : Object.keys(STEP_LABELS).indexOf(key) <
-                    Object.keys(STEP_LABELS).indexOf(step)
-                  ? "bg-green-100 text-green-800"
-                  : "bg-gray-100 text-gray-400"
-            }`}
+      {/* Tab Bar */}
+      <div
+        className="flex gap-0 px-6 flex-shrink-0"
+        style={{ backgroundColor: MV.white, borderBottom: `1px solid ${MV.gray200}` }}
+      >
+        {[
+          { id: "accession", label: "New Accession" },
+          { id: "queue", label: "Today's Queue" },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className="px-5 py-3 text-sm font-semibold cursor-pointer bg-transparent border-none transition-all"
+            style={{
+              borderBottom: `3px solid ${tab === t.id ? MV.green1 : "transparent"}`,
+              color: tab === t.id ? MV.green2 : MV.textMuted,
+            }}
           >
-            {label}
-          </div>
+            {t.label}
+          </button>
         ))}
-      </nav>
+        <div className="flex-1" />
 
-      {/* Error display */}
-      {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {/* Gate results (shown when available) */}
-      <GateStatus gateResults={gateResults} onOverride={handleOverride} />
-
-      {/* Step content */}
-      <div className="mt-6">
-        {step === "scan" && (
-          <ScanUpload onUpload={uploadAndExtract} loading={loading} />
+        {/* Error display */}
+        {error && (
+          <div className="flex items-center text-xs px-3 py-1 rounded" style={{ color: MV.danger, backgroundColor: MV.dangerLight }}>
+            {error}
+          </div>
         )}
+      </div>
 
-        {(step === "review" || step === "validate") && (
+      {/* Main Content */}
+      <div className="flex flex-1 overflow-hidden">
+        {tab === "accession" && (
           <>
+            <ScanPanel
+              onUpload={uploadAndExtract}
+              loading={loading}
+              scanComplete={scanComplete}
+              gateResults={gateResults}
+              onReset={handleReset}
+            />
             <AccessionForm
               form={form}
-              extraction={extraction}
-              onUpdateSection={updateFormSection}
+              confidences={confidences}
+              editedFields={editedFields}
+              onUpdateSection={handleUpdateSection}
               onUpdateForm={updateForm}
-              onValidate={async () => {
-                await runGateCheck("before_submit");
-                await validate();
-              }}
+              onValidate={handleValidateAndSubmit}
+              onSubmit={submit}
+              onReset={handleReset}
+              validation={validation}
               loading={loading}
+              submitReady={submitReady}
+              submitResult={submitResult}
             />
-            {step === "validate" && (
-              <div className="mt-6">
-                <ValidationDisplay
-                  validation={validation}
-                  onBack={() => {}} // Stays on form with errors shown
-                />
-              </div>
-            )}
           </>
         )}
-
-        {step === "submit" && (
-          <div className="space-y-4">
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
-              Validation passed. Ready to submit.
-            </div>
-            <button
-              onClick={submit}
-              disabled={loading}
-              className="w-full rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
-            >
-              {loading ? "Submitting..." : "Submit Accession"}
-            </button>
-          </div>
-        )}
-
-        {step === "done" && (
-          <div className="space-y-4 text-center">
-            <div className="rounded-lg border border-green-200 bg-green-50 p-6">
-              <p className="text-lg font-semibold text-green-800">
-                Accession {submitResult?.status === "submitted" ? "Submitted" : "Queued"}
-              </p>
-              {submitResult?.accession_id && (
-                <p className="mt-1 font-mono text-sm text-green-600">
-                  {submitResult.accession_id}
-                </p>
-              )}
-              {submitResult?.queue_id && (
-                <p className="mt-1 text-sm text-yellow-600">
-                  Queued offline: {submitResult.queue_id}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={reset}
-              className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              Next Specimen
-            </button>
-          </div>
-        )}
+        {tab === "queue" && <QueueView />}
       </div>
     </div>
   );

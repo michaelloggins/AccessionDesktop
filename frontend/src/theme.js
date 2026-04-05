@@ -1,0 +1,38 @@
+/**
+ * MiraVista brand palette — extracted from miravistalabs.com
+ * Used as CSS custom properties via Tailwind and inline where needed.
+ */
+export const MV = {
+  green1: "#85b43b",
+  green2: "#286f1f",
+  greenGrad: "linear-gradient(135deg, #85b43b, #286f1f)",
+  teal: "#7EBEC5",
+  tealLight: "#e8f4f6",
+  tealDark: "#5a9da5",
+  blue: "#2ea3f2",
+  white: "#ffffff",
+  offWhite: "#f7f8fa",
+  cream: "#f7f5e7",
+  gray50: "#f9fafb",
+  gray100: "#f3f4f6",
+  gray200: "#e5e7eb",
+  gray300: "#d1d5db",
+  gray400: "#9ca3af",
+  gray500: "#6b7280",
+  gray600: "#4b5563",
+  gray700: "#374151",
+  gray800: "#1f2937",
+  gray900: "#111827",
+  text: "#2d3940",
+  textLight: "#4e4e4e",
+  textMuted: "#6b7280",
+  danger: "#dc2626",
+  dangerLight: "#fef2f2",
+  dangerBorder: "#fecaca",
+  warning: "#d97706",
+  warningLight: "#fffbeb",
+  warningBorder: "#fde68a",
+  success: "#16a34a",
+  successLight: "#f0fdf4",
+  successBorder: "#bbf7d0",
+};
