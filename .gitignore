@@ -59,3 +59,8 @@ scans/
 
 # Zip archive in docs (redundant)
 docs/files.zip
+
+# Playwright MCP artifacts
+.playwright-mcp/
+*.png
+!frontend/public/*.png
