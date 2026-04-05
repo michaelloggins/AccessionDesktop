@@ -23,13 +23,20 @@ export default function App() {
     submitResult,
     loading,
     error,
+    orderType,
+    manifestMode,
+    manifestIndex,
+    setOrderType,
+    setManifestMode,
     uploadAndExtract,
     runGateCheck,
     validate,
     submit,
     updateForm,
     updateFormSection,
+    nextManifestOrder,
     reset,
+    fullReset,
   } = useAccession();
 
   // Track which fields the operator has manually edited
@@ -162,13 +169,19 @@ export default function App() {
             />
             <AccessionForm
               form={form}
+              orderType={orderType}
+              manifestMode={manifestMode}
+              manifestIndex={manifestIndex}
               confidences={confidences}
               editedFields={editedFields}
               onUpdateSection={handleUpdateSection}
               onUpdateForm={updateForm}
+              onSetOrderType={setOrderType}
+              onSetManifestMode={setManifestMode}
               onValidate={handleValidateAndSubmit}
               onSubmit={submit}
               onReset={handleReset}
+              onNextManifestOrder={nextManifestOrder}
               validation={validation}
               loading={loading}
               submitReady={submitReady}

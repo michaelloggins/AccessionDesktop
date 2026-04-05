@@ -1,0 +1,9 @@
+[      63ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=35b1e508:20100
+[   32160ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/@vite/client:963
+[   32168ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Connection closed before receiving a handshake response @ http://localhost:3000/@vite/client:1034
+[   33175ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Connection closed before receiving a handshake response @ http://localhost:3000/@vite/client:1034
+[   36522ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   39868ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   43222ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   45240ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Connection closed before receiving a handshake response @ http://localhost:3000/@vite/client:1034
+[   47131ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=a567e92e:20100

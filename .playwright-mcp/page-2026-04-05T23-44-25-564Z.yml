@@ -1,0 +1,98 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - img [ref=e7]:
+        - generic [ref=e9]: M
+      - generic [ref=e10]:
+        - generic [ref=e11]: MiraVista Diagnostics
+        - generic [ref=e12]: Accessioning Workstation
+    - generic [ref=e13]:
+      - generic [ref=e16]: Online
+      - generic [ref=e18]: Station DEV-01
+  - generic [ref=e19]:
+    - button "New Accession" [ref=e20] [cursor=pointer]
+    - button "Today's Queue" [ref=e21] [cursor=pointer]
+  - generic [ref=e23]:
+    - generic [ref=e24]:
+      - generic [ref=e26]:
+        - button "⎘ Scan Requisition" [ref=e27] [cursor=pointer]
+        - button "✎ Manual Entry" [ref=e28] [cursor=pointer]
+      - generic [ref=e29]:
+        - generic [ref=e31] [cursor=pointer]:
+          - generic [ref=e32]: ⎘
+          - generic [ref=e33]: Place requisition on scanner
+          - generic [ref=e34]: or drag and drop an image file here
+        - button "Upload Requisition" [ref=e35] [cursor=pointer]
+      - generic [ref=e36]:
+        - generic [ref=e37]: Pre-Submit Gate Checks
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - generic [ref=e40]: ○
+            - generic [ref=e41]: Fulcrum Specimen Check
+          - generic [ref=e42]:
+            - generic [ref=e43]: ○
+            - generic [ref=e44]: Compendium Validation
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]: Order Type
+          - generic [ref=e50]:
+            - button "Veterinary" [ref=e51] [cursor=pointer]
+            - button "Human" [ref=e52] [cursor=pointer]
+        - generic [ref=e54] [cursor=pointer]:
+          - checkbox "Multi-Order Manifest" [ref=e55]
+          - generic [ref=e56]: Multi-Order Manifest
+      - generic [ref=e57]:
+        - heading "Patient & Owner Information" [level=3] [ref=e60]
+        - generic [ref=e62]:
+          - generic [ref=e63]:
+            - generic [ref=e65]: Pet Name*
+            - textbox [ref=e66]
+          - generic [ref=e67]:
+            - generic [ref=e69]: Species*
+            - textbox "Canine, Feline..." [ref=e70]
+          - generic [ref=e71]:
+            - generic [ref=e73]: Breed
+            - textbox [ref=e74]
+          - generic [ref=e75]:
+            - generic [ref=e77]: Owner Name (Last, First)*
+            - textbox [ref=e78]
+          - generic [ref=e79]:
+            - generic [ref=e81]: Date of Birth
+            - textbox "MM/DD/YYYY" [ref=e82]
+          - generic [ref=e83]:
+            - generic [ref=e85]: Specimen ID (Optional)
+            - textbox [ref=e86]
+      - generic [ref=e87]:
+        - heading "Ordering Information" [level=3] [ref=e90]
+        - generic [ref=e92]:
+          - generic [ref=e94]:
+            - generic [ref=e95]: Facility
+            - textbox "Search by name, facility code, or ID..." [ref=e96]
+          - generic [ref=e97]:
+            - generic [ref=e99]: Ordering Veterinarian*
+            - textbox [ref=e100]
+          - generic [ref=e101]:
+            - generic [ref=e103]: NPI
+            - textbox "10-digit NPI" [ref=e104]
+      - generic [ref=e105]:
+        - heading "Specimen & Shipping" [level=3] [ref=e108]
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - generic [ref=e113]: Tracking Number
+            - textbox [ref=e114]
+          - generic [ref=e115]:
+            - generic [ref=e117]: Collection Date
+            - textbox [ref=e118]
+          - generic [ref=e119]:
+            - generic [ref=e121]: Specimen Storage Temp
+            - textbox "Ambient, Frozen, Refrigerated" [ref=e122]
+      - generic [ref=e123]:
+        - heading "Tests Ordered" [level=3] [ref=e126]
+        - textbox "Search compendium to add tests..." [ref=e130]
+      - generic [ref=e131]:
+        - heading "Clinical Notes & Diagnosis" [level=3] [ref=e134]
+        - textbox "ICD-10 codes, clinical notes..." [ref=e135]
+      - generic [ref=e136]:
+        - button "Clear Form" [ref=e137] [cursor=pointer]
+        - button "Validate & Submit" [ref=e139] [cursor=pointer]

@@ -1,23 +1,25 @@
 /**
  * Core state management hook for the accessioning workflow.
  *
- * Manages the workflow steps: scan → extract → gate check → fill form → validate → submit
+ * Supports Human/Vet toggle, per-test specimen types, and manifest mode.
  */
 
 import { useReducer, useCallback } from "react";
 import * as api from "../services/api";
 
-const STEPS = ["scan", "review", "validate", "submit", "done"];
-
 const initialState = {
   step: "scan",
+  orderType: "veterinary",       // "veterinary" or "human"
+  manifestMode: false,            // Multi-order manifest
+  manifestIndex: 0,               // Current order # in manifest
+  manifestShared: null,           // Shared fields (facility, physician) across manifest orders
   extraction: null,
   gateResults: {},
   form: {
-    patient: { name: "", dob: "", mrn: "", species: "", breed: "", owner_name: "" },
+    patient: { name: "", first_name: "", middle_name: "", dob: "", mrn: "", accession_id: "", species: "", breed: "", owner_name: "" },
     ordering: { customer_id: "", facility_code: "", physician: "", npi: "" },
     specimen: { tracking_number: "", fulcrum_specimen_id: "", type: "", source: "", collection_date: "", received_date: "" },
-    tests: [],
+    tests: [],            // Each test: { code, name, specimen_type }
     priority: "Routine",
     diagnosis_codes: [],
   },
@@ -33,6 +35,10 @@ function reducer(state, action) {
       return { ...state, loading: action.payload, error: null };
     case "SET_ERROR":
       return { ...state, loading: false, error: action.payload };
+    case "SET_ORDER_TYPE":
+      return { ...state, orderType: action.payload };
+    case "SET_MANIFEST_MODE":
+      return { ...state, manifestMode: action.payload, manifestIndex: 0, manifestShared: null };
     case "SET_EXTRACTION":
       return {
         ...state,
@@ -57,14 +63,43 @@ function reducer(state, action) {
       return { ...state, loading: false, validation: action.payload, step: action.payload.valid ? "submit" : "validate" };
     case "SET_SUBMIT_RESULT":
       return { ...state, loading: false, submitResult: action.payload, step: "done" };
+    case "NEXT_MANIFEST_ORDER": {
+      // Save shared fields, clear patient/test fields, keep ordering
+      const shared = {
+        ordering: { ...state.form.ordering },
+        specimen: { tracking_number: state.form.specimen.tracking_number },
+      };
+      return {
+        ...state,
+        manifestShared: shared,
+        manifestIndex: state.manifestIndex + 1,
+        step: "scan",
+        extraction: null,
+        gateResults: {},
+        validation: null,
+        submitResult: null,
+        form: {
+          ...initialState.form,
+          ordering: { ...shared.ordering },
+          specimen: { ...initialState.form.specimen, tracking_number: shared.specimen.tracking_number },
+        },
+      };
+    }
     case "RESET":
+      return {
+        ...initialState,
+        orderType: state.orderType,
+        manifestMode: state.manifestMode,
+        manifestIndex: state.manifestMode ? state.manifestIndex : 0,
+        manifestShared: state.manifestMode ? state.manifestShared : null,
+      };
+    case "FULL_RESET":
       return { ...initialState };
     default:
       return state;
   }
 }
 
-/** Merge OCR extraction into the form, preserving any manual edits */
 function mergeExtraction(form, extraction) {
   return {
     patient: { ...form.patient, ...stripEmpty(extraction.patient) },
@@ -76,7 +111,6 @@ function mergeExtraction(form, extraction) {
   };
 }
 
-/** Remove null/empty values so they don't overwrite manual entries */
 function stripEmpty(obj) {
   if (!obj) return {};
   return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null && v !== ""));
@@ -84,6 +118,14 @@ function stripEmpty(obj) {
 
 export default function useAccession() {
   const [state, dispatch] = useReducer(reducer, initialState);
+
+  const setOrderType = useCallback((type) => {
+    dispatch({ type: "SET_ORDER_TYPE", payload: type });
+  }, []);
+
+  const setManifestMode = useCallback((enabled) => {
+    dispatch({ type: "SET_MANIFEST_MODE", payload: enabled });
+  }, []);
 
   const uploadAndExtract = useCallback(async (file) => {
     dispatch({ type: "SET_LOADING", payload: true });
@@ -104,7 +146,6 @@ export default function useAccession() {
         specimen_id: state.form.specimen.fulcrum_specimen_id,
         tracking_number: state.form.specimen.tracking_number,
         context: {
-          extracted_specimen_type: state.form.specimen.type,
           extracted_tests: state.form.tests.map((t) => t.code),
           customer_id: state.form.ordering.customer_id,
         },
@@ -121,26 +162,26 @@ export default function useAccession() {
   const validate = useCallback(async () => {
     dispatch({ type: "SET_LOADING", payload: true });
     try {
-      const payload = buildPayload(state.form);
+      const payload = buildPayload(state);
       const result = await api.validateAccession(payload);
       dispatch({ type: "SET_VALIDATION", payload: result });
       return result;
     } catch (err) {
       dispatch({ type: "SET_ERROR", payload: err.message });
     }
-  }, [state.form]);
+  }, [state]);
 
   const submit = useCallback(async () => {
     dispatch({ type: "SET_LOADING", payload: true });
     try {
-      const payload = buildPayload(state.form);
+      const payload = buildPayload(state);
       payload.gate_results = state.gateResults;
       const result = await api.submitAccession(payload);
       dispatch({ type: "SET_SUBMIT_RESULT", payload: result });
     } catch (err) {
       dispatch({ type: "SET_ERROR", payload: err.message });
     }
-  }, [state.form, state.gateResults]);
+  }, [state]);
 
   const updateForm = useCallback((updates) => {
     dispatch({ type: "UPDATE_FORM", payload: updates });
@@ -150,27 +191,42 @@ export default function useAccession() {
     dispatch({ type: "UPDATE_FORM_SECTION", section, payload: updates });
   }, []);
 
+  const nextManifestOrder = useCallback(() => {
+    dispatch({ type: "NEXT_MANIFEST_ORDER" });
+  }, []);
+
   const reset = useCallback(() => {
     dispatch({ type: "RESET" });
   }, []);
 
+  const fullReset = useCallback(() => {
+    dispatch({ type: "FULL_RESET" });
+  }, []);
+
   return {
     ...state,
+    setOrderType,
+    setManifestMode,
     uploadAndExtract,
     runGateCheck,
     validate,
     submit,
     updateForm,
     updateFormSection,
+    nextManifestOrder,
     reset,
+    fullReset,
   };
 }
 
-function buildPayload(form) {
+function buildPayload(state) {
   return {
     station_id: "DEV-01",
     operator_id: "operator",
     timestamp: new Date().toISOString(),
-    ...form,
+    order_type: state.orderType,
+    manifest_mode: state.manifestMode,
+    manifest_index: state.manifestMode ? state.manifestIndex : null,
+    ...state.form,
   };
 }

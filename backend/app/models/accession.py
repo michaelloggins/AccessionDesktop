@@ -13,12 +13,15 @@ from pydantic import BaseModel, Field
 # --- Patient ---
 
 class Patient(BaseModel):
-    name: str = ""
+    name: str = ""                       # Vet: pet name, Human: last name
+    first_name: Optional[str] = None     # Human only
+    middle_name: Optional[str] = None    # Human only
     dob: Optional[str] = None
     mrn: Optional[str] = None
-    species: Optional[str] = None       # Vet MVP: Canine, Feline, etc.
-    breed: Optional[str] = None         # Vet MVP
-    owner_name: Optional[str] = None    # Vet MVP: pet owner
+    accession_id: Optional[str] = None   # Human: pre-assigned accession ID
+    species: Optional[str] = None        # Vet: Canine, Feline, etc.
+    breed: Optional[str] = None          # Vet
+    owner_name: Optional[str] = None     # Vet: pet owner
 
 
 # --- Ordering Info ---
@@ -46,6 +49,7 @@ class Specimen(BaseModel):
 class TestOrder(BaseModel):
     code: str
     name: str
+    specimen_type: Optional[str] = None  # UR, SER, PLS, CSF, BAL, Other
 
 
 # --- Gate Results ---
@@ -93,6 +97,9 @@ class AccessionPayload(BaseModel):
     station_id: str
     operator_id: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+    order_type: str = "veterinary"      # "veterinary" or "human"
+    manifest_mode: bool = False          # True if part of a multi-order manifest
+    manifest_index: Optional[int] = None # Order number within manifest batch
     patient: Patient
     ordering: OrderingInfo
     specimen: Specimen
