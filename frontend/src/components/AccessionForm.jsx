@@ -227,8 +227,9 @@ export default function AccessionForm({
           statusDetail={sectionStatus.specimen.detail}
           defaultOpen={false}
         >
-          <div className="grid grid-cols-3 gap-4">
-            <Field label="Tracking Number" value={form.specimen.tracking_number} edited={isEdited("tracking_number")} onChange={upd("specimen", "tracking_number")} />
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Tracking Number" value={form.specimen.tracking_number} edited={isEdited("tracking_number")} onChange={upd("specimen", "tracking_number")} placeholder="Optional" />
+            <Field label="Box ID (Fulcrum)" value={form.specimen.fulcrum_specimen_id} edited={isEdited("fulcrum_specimen_id")} onChange={upd("specimen", "fulcrum_specimen_id")} placeholder="Optional" />
           </div>
         </Section>
 
