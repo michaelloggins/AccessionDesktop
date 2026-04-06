@@ -39,6 +39,11 @@ export default function App() {
     fullReset,
   } = useAccession();
 
+  // Document preview state
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewType, setPreviewType] = useState(null);
+  const [ocrEnabled, setOcrEnabled] = useState(false); // Off by default — manual mode
+
   // Track which fields the operator has manually edited
   const [editedFields, setEditedFields] = useState(new Set());
 
@@ -67,7 +72,17 @@ export default function App() {
     updateFormSection(section, updates);
   };
 
+  const handleFileLoaded = (url, type, file) => {
+    // Revoke previous preview URL to avoid memory leaks
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(url);
+    setPreviewType(type);
+  };
+
   const handleReset = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPreviewType(null);
     reset();
     setEditedFields(new Set());
   };
@@ -162,10 +177,14 @@ export default function App() {
           <>
             <ScanPanel
               onUpload={uploadAndExtract}
+              onFileLoaded={handleFileLoaded}
               loading={loading}
               scanComplete={scanComplete}
+              previewUrl={previewUrl}
+              previewType={previewType}
               gateResults={gateResults}
               onReset={handleReset}
+              ocrEnabled={ocrEnabled}
             />
             <AccessionForm
               form={form}
