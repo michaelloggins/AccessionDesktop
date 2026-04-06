@@ -199,19 +199,7 @@ export default function AccessionForm({
           </Section>
         )}
 
-        {/* === Section 3: Shipping (shared) === */}
-        <Section
-          color={MV.blue}
-          title="Shipping"
-          status={sectionStatus.specimen.status}
-          statusDetail={sectionStatus.specimen.detail}
-        >
-          <div className="grid grid-cols-3 gap-4">
-            <Field label="Tracking Number" value={form.specimen.tracking_number} edited={isEdited("tracking_number")} onChange={upd("specimen", "tracking_number")} />
-          </div>
-        </Section>
-
-        {/* === Section 4: Tests Ordered === */}
+        {/* === Section 3: Tests Ordered === */}
         <Section
           color={MV.warning}
           title="Tests Ordered"
@@ -229,6 +217,19 @@ export default function AccessionForm({
               onUpdateForm({ tests: newTests });
             }}
           />
+        </Section>
+
+        {/* === Section 4: Shipping === */}
+        <Section
+          color={MV.blue}
+          title="Shipping"
+          status={sectionStatus.specimen.status}
+          statusDetail={sectionStatus.specimen.detail}
+          defaultOpen={false}
+        >
+          <div className="grid grid-cols-3 gap-4">
+            <Field label="Tracking Number" value={form.specimen.tracking_number} edited={isEdited("tracking_number")} onChange={upd("specimen", "tracking_number")} />
+          </div>
         </Section>
 
         {/* === Section 5: Clinical Notes & Diagnosis === */}
