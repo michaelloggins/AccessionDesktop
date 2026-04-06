@@ -44,6 +44,9 @@ export default function App() {
   const [previewType, setPreviewType] = useState(null);
   const [ocrEnabled, setOcrEnabled] = useState(false); // Off by default — manual mode
 
+  // Manifest orders list
+  const [manifestOrders, setManifestOrders] = useState([]);
+
   // Track which fields the operator has manually edited
   const [editedFields, setEditedFields] = useState(new Set());
 
@@ -85,6 +88,7 @@ export default function App() {
     setPreviewType(null);
     reset();
     setEditedFields(new Set());
+    setManifestOrders([]);
   };
 
   const handleValidateAndSubmit = async () => {
@@ -205,6 +209,8 @@ export default function App() {
               loading={loading}
               submitReady={submitReady}
               submitResult={submitResult}
+              manifestOrders={manifestOrders}
+              onManifestOrdersChange={setManifestOrders}
             />
           </>
         )}

@@ -1,14 +1,17 @@
 /**
  * AccessionForm — Right panel form with collapsible validated sections.
  *
- * Section order: Ordering Facility → Patient/Owner → Specimen → Tests → Notes
- * Each section is a collapsible card with green/yellow/red validation status.
+ * Single mode: Ordering Facility → Patient → Tests → Shipping → Notes
+ * Manifest mode: Ordering Facility → Orders table with inline add/edit
  */
+import { useState } from "react";
 import { MV } from "../theme";
 import Field from "./Field";
 import Select from "./Select";
 import Section from "./Section";
 import TestPicker from "./TestPicker";
+import ManifestOrderForm from "./ManifestOrderForm";
+import ManifestOrderTable from "./ManifestOrderTable";
 import { COUNTRY_OPTIONS } from "../data/countries";
 
 const SPECIES_OPTIONS = [
@@ -72,7 +75,41 @@ export default function AccessionForm({
   submitReady,
   submitResult,
   gateWarning,
+  manifestOrders,
+  onManifestOrdersChange,
 }) {
+  // Manifest order editing state
+  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [editingOrderIndex, setEditingOrderIndex] = useState(null);
+
+  const orders = manifestOrders || [];
+
+  const handleAddOrder = (order) => {
+    if (editingOrderIndex !== null) {
+      const updated = [...orders];
+      updated[editingOrderIndex] = order;
+      onManifestOrdersChange(updated);
+      setEditingOrderIndex(null);
+    } else {
+      onManifestOrdersChange([...orders, order]);
+    }
+    setShowOrderForm(false);
+  };
+
+  const handleEditOrder = (index) => {
+    setEditingOrderIndex(index);
+    setShowOrderForm(true);
+  };
+
+  const handleDeleteOrder = (index) => {
+    onManifestOrdersChange(orders.filter((_, i) => i !== index));
+  };
+
+  const handleCancelOrder = () => {
+    setShowOrderForm(false);
+    setEditingOrderIndex(null);
+  };
+
   const upd = (section, key) => (e) => {
     onUpdateSection(section, { [key]: e.target.value });
   };
@@ -162,6 +199,9 @@ export default function AccessionForm({
           </div>
         </Section>
 
+        {/* ========== SINGLE ORDER MODE ========== */}
+        {!manifestMode && (
+        <>
         {/* === Section 2: Patient Information (Vet) === */}
         {isVet && (
           <Section
@@ -278,6 +318,50 @@ export default function AccessionForm({
             style={{ border: `1.5px solid ${MV.gray200}`, color: MV.text, backgroundColor: MV.white }}
           />
         </Section>
+
+        </>
+        )}
+
+        {/* ========== MANIFEST MODE ========== */}
+        {manifestMode && (
+          <div className="mb-5">
+            {/* New Order button + order count */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <h3 className="text-[15px] font-bold m-0" style={{ color: MV.text }}>
+                  Orders ({orders.length})
+                </h3>
+              </div>
+              {!showOrderForm && (
+                <button
+                  onClick={() => { setEditingOrderIndex(null); setShowOrderForm(true); }}
+                  className="px-4 py-2 rounded-md text-sm font-bold cursor-pointer border-none"
+                  style={{ background: MV.greenGrad, color: "#fff", boxShadow: "0 2px 8px rgba(40, 111, 31, 0.25)" }}
+                >
+                  + New Order
+                </button>
+              )}
+            </div>
+
+            {/* Inline order form (add or edit) */}
+            {showOrderForm && (
+              <ManifestOrderForm
+                orderType={orderType}
+                initialData={editingOrderIndex !== null ? orders[editingOrderIndex] : null}
+                onOk={handleAddOrder}
+                onCancel={handleCancelOrder}
+              />
+            )}
+
+            {/* Orders table */}
+            <ManifestOrderTable
+              orders={orders}
+              orderType={orderType}
+              onEdit={handleEditOrder}
+              onDelete={handleDeleteOrder}
+            />
+          </div>
+        )}
 
         {/* Validation errors from backend */}
         {validation && !validation.valid && (
