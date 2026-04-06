@@ -9,6 +9,7 @@ import Field from "./Field";
 import Select from "./Select";
 import Section from "./Section";
 import TestPicker from "./TestPicker";
+import { COUNTRY_OPTIONS } from "../data/countries";
 
 const STORAGE_TEMP_OPTIONS = [
   { value: "Ambient", label: "Ambient" },
@@ -140,7 +141,7 @@ export default function AccessionForm({
               <Field label="City" value={form.ordering.city || ""} edited={isEdited("city")} onChange={upd("ordering", "city")} />
               <Field label="State" value={form.ordering.state || ""} edited={isEdited("state")} onChange={upd("ordering", "state")} />
               <Field label="Zip" value={form.ordering.zip || ""} edited={isEdited("zip")} onChange={upd("ordering", "zip")} />
-              <Field label="Country" value={form.ordering.country || ""} edited={isEdited("country")} onChange={upd("ordering", "country")} placeholder="US" />
+              <Select label="Country" value={form.ordering.country || ""} options={COUNTRY_OPTIONS} onChange={upd("ordering", "country")} placeholder="Select..." />
             </div>
             {/* Row: Email, Phone, Fax */}
             <div className="grid grid-cols-3 gap-4">
@@ -170,11 +171,11 @@ export default function AccessionForm({
               </div>
               {/* Row: DOB (standalone) */}
               <div className="grid grid-cols-3 gap-4">
-                <Field label="Date of Birth" value={form.patient.dob} confidence={conf("dob")} edited={isEdited("dob")} onChange={upd("patient", "dob")} placeholder="MM/DD/YYYY" />
+                <Field label="Date of Birth" value={form.patient.dob} confidence={conf("dob")} edited={isEdited("dob")} onChange={upd("patient", "dob")} type="date" />
               </div>
               {/* Row: Specimen Collection Date, Storage Temp, Specimen ID# */}
               <div className="grid grid-cols-3 gap-4">
-                <Field label="Specimen Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} />
+                <Field label="Specimen Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} type="date" />
                 <Select label="Specimen Storage Temp" value={form.specimen.source} options={STORAGE_TEMP_OPTIONS} onChange={upd("specimen", "source")} placeholder="Select..." />
                 <Field label="Specimen ID#" value={form.patient.mrn} confidence={conf("mrn")} edited={isEdited("mrn")} onChange={upd("patient", "mrn")} />
               </div>
@@ -201,12 +202,12 @@ export default function AccessionForm({
               </div>
               {/* Row: DOB, Accession ID# */}
               <div className="grid grid-cols-3 gap-4">
-                <Field label="Date of Birth" value={form.patient.dob} confidence={conf("dob")} edited={isEdited("dob")} required onChange={upd("patient", "dob")} placeholder="MM/DD/YYYY" />
+                <Field label="Date of Birth" value={form.patient.dob} confidence={conf("dob")} edited={isEdited("dob")} required onChange={upd("patient", "dob")} type="date" />
                 <Field label="Accession ID#" value={form.patient.accession_id} confidence={conf("accession_id")} edited={isEdited("accession_id")} onChange={upd("patient", "accession_id")} />
               </div>
               {/* Row: Specimen Collection Date, Storage Temp */}
               <div className="grid grid-cols-3 gap-4">
-                <Field label="Specimen Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} />
+                <Field label="Specimen Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} type="date" />
                 <Select label="Specimen Storage Temp" value={form.specimen.source} options={STORAGE_TEMP_OPTIONS} onChange={upd("specimen", "source")} placeholder="Select..." />
               </div>
               {/* Row: Ordering Physician, NPI */}
