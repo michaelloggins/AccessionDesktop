@@ -118,18 +118,29 @@ export default function AccessionForm({
           statusDetail={sectionStatus.facility.detail}
           locked={isManifestShared}
         >
-          <div className="grid grid-cols-3 gap-4">
-            <Field label="Facility Name" value={form.ordering.customer_id} confidence={conf("facility")} edited={isEdited("customer_id")} required onChange={upd("ordering", "customer_id")} span={2} />
-            <Field label="Facility ID" value={form.ordering.facility_code} confidence={conf("facility_code")} edited={isEdited("facility_code")} onChange={upd("ordering", "facility_code")} />
-            <Field label="Address 1" value={form.ordering.address1 || ""} edited={isEdited("address1")} onChange={upd("ordering", "address1")} span={2} />
+          <div className="flex flex-col gap-4">
+            {/* Row: Facility Name + Facility ID */}
+            <div className="grid grid-cols-3 gap-4">
+              <Field label="Facility Name" value={form.ordering.customer_id} confidence={conf("facility")} edited={isEdited("customer_id")} required onChange={upd("ordering", "customer_id")} span={2} />
+              <Field label="Facility ID" value={form.ordering.facility_code} confidence={conf("facility_code")} edited={isEdited("facility_code")} onChange={upd("ordering", "facility_code")} />
+            </div>
+            {/* Stacked: Address 1, Address 2 */}
+            <Field label="Address 1" value={form.ordering.address1 || ""} edited={isEdited("address1")} onChange={upd("ordering", "address1")} />
             <Field label="Address 2" value={form.ordering.address2 || ""} edited={isEdited("address2")} onChange={upd("ordering", "address2")} />
-            <Field label="City" value={form.ordering.city || ""} edited={isEdited("city")} onChange={upd("ordering", "city")} />
-            <Field label="State" value={form.ordering.state || ""} edited={isEdited("state")} onChange={upd("ordering", "state")} />
-            <Field label="Zip" value={form.ordering.zip || ""} edited={isEdited("zip")} onChange={upd("ordering", "zip")} />
-            <Field label="Country" value={form.ordering.country || ""} edited={isEdited("country")} onChange={upd("ordering", "country")} placeholder="US" />
-            <Field label="Email" value={form.ordering.email || ""} edited={isEdited("email")} onChange={upd("ordering", "email")} />
-            <Field label="Phone" value={form.ordering.phone || ""} edited={isEdited("phone")} onChange={upd("ordering", "phone")} />
-            <Field label="Fax" value={form.ordering.fax || ""} edited={isEdited("fax")} onChange={upd("ordering", "fax")} />
+            {/* Row: City, State, Zip, Country */}
+            <div className="grid grid-cols-4 gap-4">
+              <Field label="City" value={form.ordering.city || ""} edited={isEdited("city")} onChange={upd("ordering", "city")} />
+              <Field label="State" value={form.ordering.state || ""} edited={isEdited("state")} onChange={upd("ordering", "state")} />
+              <Field label="Zip" value={form.ordering.zip || ""} edited={isEdited("zip")} onChange={upd("ordering", "zip")} />
+              <Field label="Country" value={form.ordering.country || ""} edited={isEdited("country")} onChange={upd("ordering", "country")} placeholder="US" />
+            </div>
+            {/* Row: Email, Phone, Fax */}
+            <div className="grid grid-cols-3 gap-4">
+              <Field label="Email" value={form.ordering.email || ""} edited={isEdited("email")} onChange={upd("ordering", "email")} />
+              <Field label="Phone" value={form.ordering.phone || ""} edited={isEdited("phone")} onChange={upd("ordering", "phone")} />
+              <Field label="Fax" value={form.ordering.fax || ""} edited={isEdited("fax")} onChange={upd("ordering", "fax")} />
+            </div>
+            {/* Row: Laboratory Contact (full width) */}
             <Field label="Laboratory Contact" value={form.ordering.lab_contact || ""} edited={isEdited("lab_contact")} onChange={upd("ordering", "lab_contact")} />
           </div>
         </Section>
@@ -142,14 +153,24 @@ export default function AccessionForm({
             status={sectionStatus.patient.status}
             statusDetail={sectionStatus.patient.detail}
           >
-            <div className="grid grid-cols-3 gap-4">
-              <Field label="Owner Last Name" value={form.patient.owner_name} confidence={conf("owner_name")} edited={isEdited("owner_name")} required onChange={upd("patient", "owner_name")} />
-              <Field label="Pet Name" value={form.patient.name} confidence={conf("patient_name")} edited={isEdited("patient_name")} required onChange={upd("patient", "name")} />
-              <Field label="Species" value={form.patient.species} confidence={conf("species")} edited={isEdited("species")} required onChange={upd("patient", "species")} placeholder="Canine, Feline..." />
-              <Field label="Date of Birth" value={form.patient.dob} confidence={conf("dob")} edited={isEdited("dob")} onChange={upd("patient", "dob")} placeholder="MM/DD/YYYY" />
-              <Field label="Specimen ID#" value={form.patient.mrn} confidence={conf("mrn")} edited={isEdited("mrn")} onChange={upd("patient", "mrn")} />
-              <Field label="Specimen Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} />
-              <Field label="Specimen Storage Temperature" value={form.specimen.source} edited={isEdited("storage_temp")} onChange={upd("specimen", "source")} placeholder="Ambient, Frozen, Refrigerated" />
+            <div className="flex flex-col gap-4">
+              {/* Row: Owner Last Name, Pet Name, Species */}
+              <div className="grid grid-cols-3 gap-4">
+                <Field label="Owner Last Name" value={form.patient.owner_name} confidence={conf("owner_name")} edited={isEdited("owner_name")} required onChange={upd("patient", "owner_name")} />
+                <Field label="Pet Name" value={form.patient.name} confidence={conf("patient_name")} edited={isEdited("patient_name")} required onChange={upd("patient", "name")} />
+                <Field label="Species" value={form.patient.species} confidence={conf("species")} edited={isEdited("species")} required onChange={upd("patient", "species")} placeholder="Canine, Feline..." />
+              </div>
+              {/* Row: DOB (standalone) */}
+              <div className="grid grid-cols-3 gap-4">
+                <Field label="Date of Birth" value={form.patient.dob} confidence={conf("dob")} edited={isEdited("dob")} onChange={upd("patient", "dob")} placeholder="MM/DD/YYYY" />
+              </div>
+              {/* Row: Specimen Collection Date, Storage Temp, Specimen ID# */}
+              <div className="grid grid-cols-3 gap-4">
+                <Field label="Specimen Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} />
+                <Field label="Specimen Storage Temp" value={form.specimen.source} edited={isEdited("storage_temp")} onChange={upd("specimen", "source")} placeholder="Ambient, Frozen, Refrigerated" />
+                <Field label="Specimen ID#" value={form.patient.mrn} confidence={conf("mrn")} edited={isEdited("mrn")} onChange={upd("patient", "mrn")} />
+              </div>
+              {/* Row: Ordering Veterinarian (full width) */}
               <Field label="Ordering Veterinarian" value={form.ordering.physician} confidence={conf("physician")} edited={isEdited("physician")} required onChange={upd("ordering", "physician")} />
             </div>
           </Section>
