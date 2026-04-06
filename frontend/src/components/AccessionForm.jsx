@@ -11,6 +11,14 @@ import Section from "./Section";
 import TestPicker from "./TestPicker";
 import { COUNTRY_OPTIONS } from "../data/countries";
 
+const SPECIES_OPTIONS = [
+  { value: "Canine", label: "Canine" },
+  { value: "Feline", label: "Feline" },
+  { value: "Equine", label: "Equine" },
+  { value: "Avian", label: "Avian" },
+  { value: "Other", label: "Other" },
+];
+
 const STORAGE_TEMP_OPTIONS = [
   { value: "Ambient", label: "Ambient" },
   { value: "Refrigerated", label: "Refrigerated" },
@@ -167,7 +175,7 @@ export default function AccessionForm({
               <div className="grid grid-cols-3 gap-4">
                 <Field label="Owner Last Name" value={form.patient.owner_name} confidence={conf("owner_name")} edited={isEdited("owner_name")} required onChange={upd("patient", "owner_name")} />
                 <Field label="Pet Name" value={form.patient.name} confidence={conf("patient_name")} edited={isEdited("patient_name")} required onChange={upd("patient", "name")} />
-                <Field label="Species" value={form.patient.species} confidence={conf("species")} edited={isEdited("species")} required onChange={upd("patient", "species")} placeholder="Canine, Feline..." />
+                <Select label="Species" value={form.patient.species} options={SPECIES_OPTIONS} onChange={upd("patient", "species")} required placeholder="Select..." />
               </div>
               {/* Row: DOB (standalone) */}
               <div className="grid grid-cols-3 gap-4">
