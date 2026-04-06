@@ -71,7 +71,11 @@ export async function searchPhysicians(query) {
   return request(`/lookup/physicians?q=${encodeURIComponent(query)}`);
 }
 
-/** Get available tests */
-export async function searchTests(query = "") {
-  return request(`/lookup/tests?q=${encodeURIComponent(query)}`);
+/** Search compendium tests, filtered by market and optionally species */
+export async function searchTests(query = "", market = "", species = "") {
+  const params = new URLSearchParams();
+  if (query) params.set("q", query);
+  if (market) params.set("market", market);
+  if (species) params.set("species", species);
+  return request(`/lookup/tests?${params.toString()}`);
 }

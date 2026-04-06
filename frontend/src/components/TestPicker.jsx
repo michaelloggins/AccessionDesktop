@@ -17,7 +17,7 @@ const ALL_SPECIMEN_TYPES = [
   { code: "Other", name: "Other" },
 ];
 
-export default function TestPicker({ tests, onAdd, onRemove, onUpdateTest }) {
+export default function TestPicker({ tests, onAdd, onRemove, onUpdateTest, market }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
@@ -25,7 +25,7 @@ export default function TestPicker({ tests, onAdd, onRemove, onUpdateTest }) {
 
   const search = useCallback(async (q) => {
     try {
-      const data = await searchTests(q);
+      const data = await searchTests(q, market || "");
       const filtered = data.filter(
         (t) => !tests.find((s) => s.code === t.code),
       );
@@ -34,7 +34,7 @@ export default function TestPicker({ tests, onAdd, onRemove, onUpdateTest }) {
     } catch {
       setResults([]);
     }
-  }, [tests]);
+  }, [tests, market]);
 
   const handleChange = useCallback(
     (e) => {
@@ -122,14 +122,14 @@ export default function TestPicker({ tests, onAdd, onRemove, onUpdateTest }) {
         />
         {open && results.length > 0 && (
           <div
-            className="absolute top-full mt-1 left-0 right-0 z-20 rounded-md max-h-60 overflow-auto"
+            className="absolute top-full mt-1 left-0 right-0 z-50 rounded-md max-h-60 overflow-auto"
             style={{
               backgroundColor: MV.white,
               border: `1px solid ${MV.gray200}`,
               boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
             }}
           >
-            {results.slice(0, 8).map((t) => (
+            {results.slice(0, 10).map((t) => (
               <button
                 key={t.code}
                 onMouseDown={() => {
@@ -145,20 +145,32 @@ export default function TestPicker({ tests, onAdd, onRemove, onUpdateTest }) {
                 className="flex items-center justify-between w-full px-3.5 py-2.5 text-left cursor-pointer bg-transparent hover:bg-gray-50"
                 style={{ border: "none", borderBottom: `1px solid ${MV.gray100}` }}
               >
-                <div>
+                <div className="flex-1 min-w-0">
                   <div className="text-[13px] font-semibold" style={{ color: MV.text }}>{t.name}</div>
-                  <div className="text-[11px] mt-0.5" style={{ color: MV.textMuted }}>
-                    <span className="font-mono" style={{ color: MV.tealDark }}>{t.code}</span>
-                    <span className="mx-1.5" style={{ color: MV.gray300 }}>|</span>
-                    {t.specimen_types?.join(", ")}
+                  <div className="text-[11px] mt-0.5 flex items-center gap-1 flex-wrap" style={{ color: MV.textMuted }}>
+                    <span className="font-mono font-bold" style={{ color: MV.tealDark }}>{t.code}</span>
+                    <span style={{ color: MV.gray300 }}>|</span>
+                    <span>{t.organism}</span>
+                    <span style={{ color: MV.gray300 }}>|</span>
+                    <span>{t.specimen_types?.join(", ")}</span>
                   </div>
+                  {t.tat && (
+                    <div className="text-[10px] mt-0.5" style={{ color: MV.gray400 }}>
+                      TAT: {t.tat}
+                    </div>
+                  )}
                 </div>
-                <span
-                  className="text-[11px] font-semibold px-1.5 py-0.5 rounded"
-                  style={{ color: MV.gray400, backgroundColor: MV.gray100 }}
-                >
-                  {t.category}
-                </span>
+                <div className="flex flex-col items-end gap-1 flex-shrink-0 ml-2">
+                  <span
+                    className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                    style={{ color: MV.gray400, backgroundColor: MV.gray100 }}
+                  >
+                    {t.category}
+                  </span>
+                  <span className="text-[10px]" style={{ color: MV.gray400 }}>
+                    {t.methodology}
+                  </span>
+                </div>
               </button>
             ))}
           </div>

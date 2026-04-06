@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     apim_base_url: str = "https://mvd-apim.azure-api.net"
     apim_subscription_key: str = ""
 
+    # URLIP Compendium API
+    compendium_api_url: str = "http://host.docker.internal:7071/api/compendium"
+
     # Local paths (inside container)
     config_path: str = "/app/config"
     data_path: str = "/app/data"

@@ -220,6 +220,7 @@ export default function AccessionForm({
         >
           <TestPicker
             tests={form.tests}
+            market={isVet ? "Veterinary" : "Human"}
             onAdd={(test) => onUpdateForm({ tests: [...form.tests, test] })}
             onRemove={(i) => onUpdateForm({ tests: form.tests.filter((_, j) => j !== i) })}
             onUpdateTest={(i, updates) => {

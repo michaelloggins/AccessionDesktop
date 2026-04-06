@@ -52,7 +52,7 @@ export default function Section({
 
   return (
     <div
-      className="mb-5 rounded-lg overflow-hidden"
+      className="mb-5 rounded-lg"
       style={{
         border: `1px solid ${status === "empty" ? MV.gray200 : cfg.border}`,
         boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
@@ -114,11 +114,11 @@ export default function Section({
         )}
       </div>
 
-      {/* Body — collapsible */}
+      {/* Body — collapsible, overflow visible for dropdowns */}
       {open && (
         <div
-          className="px-5 py-4"
-          style={{ backgroundColor: locked ? MV.gray50 : MV.white }}
+          className="px-5 py-4 relative"
+          style={{ backgroundColor: locked ? MV.gray50 : MV.white, overflow: "visible" }}
         >
           {children}
         </div>
