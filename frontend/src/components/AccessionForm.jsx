@@ -12,7 +12,9 @@ import Section from "./Section";
 import TestPicker from "./TestPicker";
 import ManifestOrderForm from "./ManifestOrderForm";
 import ManifestOrderTable from "./ManifestOrderTable";
+import ManifestReview from "./ManifestReview";
 import { COUNTRY_OPTIONS } from "../data/countries";
+import { validateSpecimens, validateOrder } from "../services/specimenValidator";
 
 const SPECIES_OPTIONS = [
   { value: "Canine", label: "Canine" },
@@ -78,9 +80,13 @@ export default function AccessionForm({
   manifestOrders,
   onManifestOrdersChange,
 }) {
-  // Manifest order editing state
+  // Specimen validation errors (single order mode)
+  const [specimenErrors, setSpecimenErrors] = useState([]);
+
+  // Manifest state
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [editingOrderIndex, setEditingOrderIndex] = useState(null);
+  const [showManifestReview, setShowManifestReview] = useState(false);
 
   const orders = manifestOrders || [];
 
@@ -134,8 +140,8 @@ export default function AccessionForm({
           <ModeToggle
             label="Order Type"
             options={[
-              { id: "veterinary", label: "Veterinary" },
               { id: "human", label: "Human" },
+              { id: "veterinary", label: "Veterinary" },
             ]}
             value={orderType}
             onChange={onSetOrderType}
@@ -277,12 +283,14 @@ export default function AccessionForm({
           <TestPicker
             tests={form.tests}
             market={isVet ? "Veterinary" : "Human"}
-            onAdd={(test) => onUpdateForm({ tests: [...form.tests, test] })}
-            onRemove={(i) => onUpdateForm({ tests: form.tests.filter((_, j) => j !== i) })}
+            validationErrors={specimenErrors}
+            onAdd={(test) => { onUpdateForm({ tests: [...form.tests, test] }); setSpecimenErrors([]); }}
+            onRemove={(i) => { onUpdateForm({ tests: form.tests.filter((_, j) => j !== i) }); setSpecimenErrors([]); }}
             onUpdateTest={(i, updates) => {
               const newTests = [...form.tests];
               newTests[i] = { ...newTests[i], ...updates };
               onUpdateForm({ tests: newTests });
+              setSpecimenErrors([]);
             }}
           />
         </Section>
@@ -363,6 +371,20 @@ export default function AccessionForm({
           </div>
         )}
 
+        {/* ========== MANIFEST REVIEW SCREEN ========== */}
+        {manifestMode && showManifestReview && (
+          <ManifestReview
+            orders={orders}
+            orderType={orderType}
+            onBack={() => setShowManifestReview(false)}
+            onSubmitApproved={(approvedOrders) => {
+              // TODO: submit each approved order to backend
+              alert(`Submitting ${approvedOrders.length} approved orders`);
+              setShowManifestReview(false);
+            }}
+          />
+        )}
+
         {/* Validation errors from backend */}
         {validation && !validation.valid && (
           <div className="mb-6 rounded-lg p-4" style={{ backgroundColor: MV.dangerLight, border: `1px solid ${MV.dangerBorder}` }}>
@@ -416,8 +438,22 @@ export default function AccessionForm({
               </button>
             )}
             <button
-              onClick={submitReady ? onSubmit : onValidate}
-              disabled={loading}
+              onClick={() => {
+                if (manifestMode) {
+                  // Show manifest review screen
+                  setShowManifestReview(true);
+                } else if (submitReady) {
+                  onSubmit();
+                } else {
+                  // Single order: validate specimens first
+                  const errors = validateSpecimens(form.tests);
+                  setSpecimenErrors(errors);
+                  if (errors.length === 0) {
+                    onValidate();
+                  }
+                }
+              }}
+              disabled={loading || (manifestMode && orders.length === 0)}
               className="px-8 py-2.5 rounded-md border-none cursor-pointer text-[15px] font-bold disabled:opacity-50"
               style={{ background: MV.greenGrad, color: "#fff", boxShadow: "0 2px 10px rgba(40, 111, 31, 0.3)" }}
             >

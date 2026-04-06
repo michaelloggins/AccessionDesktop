@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import re
 
 import httpx
 from fastapi import APIRouter, Query
@@ -108,6 +109,7 @@ async def search_tests(
                     "acceptable_sources": ol.get("acceptableSources", []),
                     "sample_handling": ol.get("sampleHandling", ""),
                     "reference_range": ol.get("referenceRange", ""),
+                    "min_volume_ml": _extract_min_volume(ol.get("sampleHandling", "")),
                 }
                 for ol in test.get("orderableLoincs", [])
             ],
@@ -133,6 +135,27 @@ async def refresh_compendium():
     _compendium_cache = None
     tests = await _fetch_compendium()
     return {"status": "refreshed", "total": len(tests)}
+
+
+def _extract_min_volume(sample_handling: str) -> float | None:
+    """Parse minimum volume from sample handling text like 'Minimum Volume = 0.5mL'."""
+    if not sample_handling:
+        return None
+    # Match patterns like: "0.8 mL", "0.25 mL", "Volume: 0.5 mL", "volume = 0.8mL"
+    match = re.search(r"(?:min\w*\s*)?volume\s*[=:]\s*([\d.]+)\s*m[lL]", sample_handling, re.IGNORECASE)
+    if match:
+        try:
+            return float(match.group(1))
+        except ValueError:
+            pass
+    # Fallback: look for standalone "X.X mL" patterns
+    match = re.search(r"([\d.]+)\s*m[lL]", sample_handling, re.IGNORECASE)
+    if match:
+        try:
+            return float(match.group(1))
+        except ValueError:
+            pass
+    return None
 
 
 @router.get("/customers")

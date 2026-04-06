@@ -9,7 +9,7 @@ import * as api from "../services/api";
 
 const initialState = {
   step: "scan",
-  orderType: "veterinary",       // "veterinary" or "human"
+  orderType: "human",            // "human" or "veterinary"
   manifestMode: false,            // Multi-order manifest
   manifestIndex: 0,               // Current order # in manifest
   manifestShared: null,           // Shared fields (facility, physician) across manifest orders
