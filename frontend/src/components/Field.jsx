@@ -16,9 +16,12 @@ export default function Field({
   type = "text",
   span,
   placeholder,
+  mismatch,       // { expected: "value from RASCLIENTS" } if field doesn't match
+  onUseMismatch,  // callback to accept the RASCLIENTS value
 }) {
   const [focused, setFocused] = useState(false);
   const isLow = confidence !== undefined && confidence < 0.85;
+  const hasMismatch = mismatch && mismatch.expected;
 
   return (
     <div style={{ gridColumn: span ? `span ${span}` : undefined }}>
@@ -39,6 +42,26 @@ export default function Field({
           {confidence !== undefined && <ConfBadge c={confidence} />}
         </div>
       </div>
+      {/* Mismatch indicator — RASCLIENTS value in red above the field */}
+      {hasMismatch && (
+        <div
+          className="flex items-center justify-between mb-1 px-2 py-0.5 rounded text-[11px]"
+          style={{ backgroundColor: MV.warningLight, border: `1px solid ${MV.warningBorder}` }}
+        >
+          <span style={{ color: MV.danger, fontWeight: 600 }}>
+            {mismatch.expected}
+          </span>
+          {onUseMismatch && (
+            <button
+              onClick={onUseMismatch}
+              className="px-1.5 py-0 rounded text-[10px] font-bold cursor-pointer border-none"
+              style={{ backgroundColor: MV.warning, color: "#fff" }}
+            >
+              Use
+            </button>
+          )}
+        </div>
+      )}
       <input
         type={type}
         value={value || ""}
@@ -48,9 +71,9 @@ export default function Field({
         onBlur={() => setFocused(false)}
         className="w-full px-[11px] py-[9px] text-sm rounded-[5px] outline-none transition-all"
         style={{
-          border: `1.5px solid ${focused ? MV.teal : isLow ? MV.warningBorder : MV.gray200}`,
+          border: `1.5px solid ${focused ? MV.teal : hasMismatch ? MV.warningBorder : isLow ? MV.warningBorder : MV.gray200}`,
           color: MV.text,
-          backgroundColor: isLow ? MV.warningLight : MV.white,
+          backgroundColor: hasMismatch ? MV.warningLight : isLow ? MV.warningLight : MV.white,
           boxShadow: focused ? "0 0 0 3px rgba(126, 190, 197, 0.2)" : "none",
         }}
       />

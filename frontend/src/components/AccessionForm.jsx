@@ -84,6 +84,9 @@ export default function AccessionForm({
   // Specimen validation errors (single order mode)
   const [specimenErrors, setSpecimenErrors] = useState([]);
 
+  // Facility field mismatches from RASCLIENTS comparison
+  const [facilityMismatches, setFacilityMismatches] = useState({});
+
   // Manifest state
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [editingOrderIndex, setEditingOrderIndex] = useState(null);
@@ -181,21 +184,21 @@ export default function AccessionForm({
         >
           <div className="flex flex-col gap-4">
             {/* Facility Name + ID with autocomplete (Azure Maps + RASCLIENTS) */}
-            <FacilityLookup form={form} onUpdateSection={onUpdateSection} />
+            <FacilityLookup form={form} onUpdateSection={onUpdateSection} onMismatchesChange={setFacilityMismatches} />
             {/* Address 2 (Address 1 is handled by FacilityLookup above) */}
-            <Field label="Address 2" value={form.ordering.address2 || ""} edited={isEdited("address2")} onChange={upd("ordering", "address2")} />
+            <Field label="Address 2" value={form.ordering.address2 || ""} edited={isEdited("address2")} onChange={upd("ordering", "address2")} mismatch={facilityMismatches.address2} onUseMismatch={facilityMismatches.address2 ? () => onUpdateSection("ordering", { address2: facilityMismatches.address2.expected }) : undefined} />
             {/* Row: City, State, Zip, Country */}
             <div className="grid grid-cols-4 gap-4">
-              <Field label="City" value={form.ordering.city || ""} edited={isEdited("city")} onChange={upd("ordering", "city")} />
-              <Field label="State" value={form.ordering.state || ""} edited={isEdited("state")} onChange={upd("ordering", "state")} />
-              <Field label="Zip" value={form.ordering.zip || ""} edited={isEdited("zip")} onChange={upd("ordering", "zip")} />
+              <Field label="City" value={form.ordering.city || ""} edited={isEdited("city")} onChange={upd("ordering", "city")} mismatch={facilityMismatches.city} onUseMismatch={facilityMismatches.city ? () => onUpdateSection("ordering", { city: facilityMismatches.city.expected }) : undefined} />
+              <Field label="State" value={form.ordering.state || ""} edited={isEdited("state")} onChange={upd("ordering", "state")} mismatch={facilityMismatches.state} onUseMismatch={facilityMismatches.state ? () => onUpdateSection("ordering", { state: facilityMismatches.state.expected }) : undefined} />
+              <Field label="Zip" value={form.ordering.zip || ""} edited={isEdited("zip")} onChange={upd("ordering", "zip")} mismatch={facilityMismatches.zip} onUseMismatch={facilityMismatches.zip ? () => onUpdateSection("ordering", { zip: facilityMismatches.zip.expected }) : undefined} />
               <Select label="Country" value={form.ordering.country || ""} options={COUNTRY_OPTIONS} onChange={upd("ordering", "country")} placeholder="Select..." />
             </div>
             {/* Row: Email, Phone, Fax */}
             <div className="grid grid-cols-3 gap-4">
-              <Field label="Email" value={form.ordering.email || ""} edited={isEdited("email")} onChange={upd("ordering", "email")} />
-              <Field label="Phone" value={form.ordering.phone || ""} edited={isEdited("phone")} onChange={upd("ordering", "phone")} />
-              <Field label="Fax" value={form.ordering.fax || ""} edited={isEdited("fax")} onChange={upd("ordering", "fax")} />
+              <Field label="Email" value={form.ordering.email || ""} edited={isEdited("email")} onChange={upd("ordering", "email")} mismatch={facilityMismatches.email} onUseMismatch={facilityMismatches.email ? () => onUpdateSection("ordering", { email: facilityMismatches.email.expected }) : undefined} />
+              <Field label="Phone" value={form.ordering.phone || ""} edited={isEdited("phone")} onChange={upd("ordering", "phone")} mismatch={facilityMismatches.phone} onUseMismatch={facilityMismatches.phone ? () => onUpdateSection("ordering", { phone: facilityMismatches.phone.expected }) : undefined} />
+              <Field label="Fax" value={form.ordering.fax || ""} edited={isEdited("fax")} onChange={upd("ordering", "fax")} mismatch={facilityMismatches.fax} onUseMismatch={facilityMismatches.fax ? () => onUpdateSection("ordering", { fax: facilityMismatches.fax.expected }) : undefined} />
             </div>
             {/* Row: Laboratory Contact (full width) */}
             <Field label="Laboratory Contact" value={form.ordering.lab_contact || ""} edited={isEdited("lab_contact")} onChange={upd("ordering", "lab_contact")} />

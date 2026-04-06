@@ -10,15 +10,62 @@ import { useState, useCallback, useRef } from "react";
 import { MV } from "../theme";
 import { addressAutocomplete, facilitySearch, facilityLookup } from "../services/api";
 
-export default function FacilityLookup({ form, onUpdateSection }) {
+/**
+ * Normalize an address string for comparison:
+ * lowercase, trim, collapse whitespace, remove punctuation
+ */
+function normalize(val) {
+  if (!val) return "";
+  return val.toLowerCase().trim().replace(/[.,#\-]/g, "").replace(/\s+/g, " ");
+}
+
+/**
+ * Compare two values after normalization. Returns true if they differ meaningfully.
+ */
+function isDifferent(a, b) {
+  const na = normalize(a);
+  const nb = normalize(b);
+  if (!na && !nb) return false; // both empty = no mismatch
+  if (!na || !nb) return false; // one empty = don't flag (user hasn't filled it)
+  return na !== nb;
+}
+
+export default function FacilityLookup({ form, onUpdateSection, onMismatchesChange }) {
   const [nameQuery, setNameQuery] = useState(form.ordering.customer_id || "");
   const [idQuery, setIdQuery] = useState(form.ordering.facility_code || "");
   const [addr1Query, setAddr1Query] = useState(form.ordering.address1 || "");
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
   const [searching, setSearching] = useState(false);
-  const [nameSuggestion, setNameSuggestion] = useState(null); // { name, id } if mismatch
+  const [nameSuggestion, setNameSuggestion] = useState(null);
+  const [rasRecord, setRasRecord] = useState(null); // Best RASCLIENTS match for comparison
   const debounceRef = useRef(null);
+
+  // Compare current form fields against RASCLIENTS record and report mismatches
+  const computeMismatches = useCallback((ras, currentForm) => {
+    if (!ras || !onMismatchesChange) return;
+    const ord = currentForm?.ordering || form.ordering;
+    const mismatches = {};
+
+    const fields = [
+      { key: "address1", formVal: ord.address1, rasVal: ras.Address1 || ras.address1 },
+      { key: "address2", formVal: ord.address2, rasVal: ras.Address2 || ras.address2 },
+      { key: "city", formVal: ord.city, rasVal: ras.City || ras.city },
+      { key: "state", formVal: ord.state, rasVal: ras.State || ras.state },
+      { key: "zip", formVal: ord.zip, rasVal: ras.ZipCode || ras.zipCode },
+      { key: "phone", formVal: ord.phone, rasVal: ras.Phone || ras.phone },
+      { key: "fax", formVal: ord.fax, rasVal: ras.Fax || ras.fax },
+      { key: "email", formVal: ord.email, rasVal: ras.Email || ras.email },
+    ];
+
+    fields.forEach(({ key, formVal, rasVal }) => {
+      if (isDifferent(formVal, rasVal) && rasVal) {
+        mismatches[key] = { expected: rasVal };
+      }
+    });
+
+    onMismatchesChange(mismatches);
+  }, [form.ordering, onMismatchesChange]);
 
   // Search Azure Maps + RASCLIENTS (for Address 1 autocomplete)
   const searchCombined = useCallback(async (q) => {
@@ -70,8 +117,9 @@ export default function FacilityLookup({ form, onUpdateSection }) {
       const facilities = await facilitySearch(nameQuery);
       if (facilities.length > 0) {
         const best = facilities[0];
+        setRasRecord(best);
         const bestName = best.ClientName || best.clientName || "";
-        if (bestName.toLowerCase() !== nameQuery.toLowerCase()) {
+        if (isDifferent(nameQuery, bestName)) {
           setNameSuggestion({
             name: bestName,
             id: best.ExternalClientID || best.externalClientID,
@@ -79,14 +127,15 @@ export default function FacilityLookup({ form, onUpdateSection }) {
           });
         } else {
           setNameSuggestion(null);
-          // Exact match — auto-fill facility ID if empty
           if (!idQuery) {
             applyFacility(best);
           }
         }
+        // Compare all fields against RASCLIENTS
+        computeMismatches(best);
       }
     } catch { /* ignore */ }
-  }, [nameQuery, idQuery]);
+  }, [nameQuery, idQuery, computeMismatches]);
 
   // Address 1 — autocomplete
   const handleAddr1Change = useCallback((e) => {
@@ -140,7 +189,7 @@ export default function FacilityLookup({ form, onUpdateSection }) {
     setOpen(false);
   };
 
-  const applyAddress = (a) => {
+  const applyAddress = async (a) => {
     const updates = {
       address1: a.address1 || "",
       city: a.city || "",
@@ -151,6 +200,26 @@ export default function FacilityLookup({ form, onUpdateSection }) {
     onUpdateSection("ordering", updates);
     setAddr1Query(updates.address1);
     setOpen(false);
+
+    // After filling address from Azure Maps, search RASCLIENTS to compare
+    try {
+      const facilities = await facilitySearch(a.address1 || a.city || "");
+      if (facilities.length > 0) {
+        const best = facilities[0];
+        setRasRecord(best);
+        computeMismatches(best, { ordering: { ...form.ordering, ...updates } });
+
+        // Also suggest facility name if different
+        const bestName = best.ClientName || best.clientName || "";
+        if (nameQuery && isDifferent(nameQuery, bestName)) {
+          setNameSuggestion({
+            name: bestName,
+            id: best.ExternalClientID || best.externalClientID,
+            data: best,
+          });
+        }
+      }
+    } catch { /* ignore */ }
   };
 
   const handleSelect = (item) => {
