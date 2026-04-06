@@ -182,8 +182,7 @@ export default function AccessionForm({
           <div className="flex flex-col gap-4">
             {/* Facility Name + ID with autocomplete (Azure Maps + RASCLIENTS) */}
             <FacilityLookup form={form} onUpdateSection={onUpdateSection} />
-            {/* Stacked: Address 1, Address 2 */}
-            <Field label="Address 1" value={form.ordering.address1 || ""} edited={isEdited("address1")} onChange={upd("ordering", "address1")} />
+            {/* Address 2 (Address 1 is handled by FacilityLookup above) */}
             <Field label="Address 2" value={form.ordering.address2 || ""} edited={isEdited("address2")} onChange={upd("ordering", "address2")} />
             {/* Row: City, State, Zip, Country */}
             <div className="grid grid-cols-4 gap-4">
