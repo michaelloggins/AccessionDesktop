@@ -130,34 +130,27 @@ export default function AccessionForm({
             <Field label="Email" value={form.ordering.email || ""} edited={isEdited("email")} onChange={upd("ordering", "email")} />
             <Field label="Phone" value={form.ordering.phone || ""} edited={isEdited("phone")} onChange={upd("ordering", "phone")} />
             <Field label="Fax" value={form.ordering.fax || ""} edited={isEdited("fax")} onChange={upd("ordering", "fax")} />
-            <Field
-              label={isVet ? "Ordering Veterinarian" : "Ordering Physician"}
-              value={form.ordering.physician}
-              confidence={conf("physician")}
-              edited={isEdited("physician")}
-              required
-              onChange={upd("ordering", "physician")}
-            />
-            <Field label="NPI" value={form.ordering.npi} confidence={conf("npi")} edited={isEdited("npi")} onChange={upd("ordering", "npi")} placeholder="10-digit NPI" />
             <Field label="Laboratory Contact" value={form.ordering.lab_contact || ""} edited={isEdited("lab_contact")} onChange={upd("ordering", "lab_contact")} />
           </div>
         </Section>
 
-        {/* === Section 2: Patient & Owner (Vet) === */}
+        {/* === Section 2: Patient Information (Vet) === */}
         {isVet && (
           <Section
             color={MV.greenGrad}
-            title="Patient & Owner Information"
+            title="Patient Information"
             status={sectionStatus.patient.status}
             statusDetail={sectionStatus.patient.detail}
           >
             <div className="grid grid-cols-3 gap-4">
+              <Field label="Owner Last Name" value={form.patient.owner_name} confidence={conf("owner_name")} edited={isEdited("owner_name")} required onChange={upd("patient", "owner_name")} />
               <Field label="Pet Name" value={form.patient.name} confidence={conf("patient_name")} edited={isEdited("patient_name")} required onChange={upd("patient", "name")} />
               <Field label="Species" value={form.patient.species} confidence={conf("species")} edited={isEdited("species")} required onChange={upd("patient", "species")} placeholder="Canine, Feline..." />
-              <Field label="Breed" value={form.patient.breed} confidence={conf("breed")} edited={isEdited("breed")} onChange={upd("patient", "breed")} />
-              <Field label="Owner Name (Last, First)" value={form.patient.owner_name} confidence={conf("owner_name")} edited={isEdited("owner_name")} required onChange={upd("patient", "owner_name")} />
               <Field label="Date of Birth" value={form.patient.dob} confidence={conf("dob")} edited={isEdited("dob")} onChange={upd("patient", "dob")} placeholder="MM/DD/YYYY" />
-              <Field label="Specimen ID (Optional)" value={form.patient.mrn} confidence={conf("mrn")} edited={isEdited("mrn")} onChange={upd("patient", "mrn")} />
+              <Field label="Specimen ID#" value={form.patient.mrn} confidence={conf("mrn")} edited={isEdited("mrn")} onChange={upd("patient", "mrn")} />
+              <Field label="Specimen Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} />
+              <Field label="Specimen Storage Temperature" value={form.specimen.source} edited={isEdited("storage_temp")} onChange={upd("specimen", "source")} placeholder="Ambient, Frozen, Refrigerated" />
+              <Field label="Ordering Veterinarian" value={form.ordering.physician} confidence={conf("physician")} edited={isEdited("physician")} required onChange={upd("ordering", "physician")} />
             </div>
           </Section>
         )}
@@ -177,21 +170,23 @@ export default function AccessionForm({
               <Field label="Date of Birth" value={form.patient.dob} confidence={conf("dob")} edited={isEdited("dob")} required onChange={upd("patient", "dob")} placeholder="MM/DD/YYYY" />
               <Field label="MRN" value={form.patient.mrn} confidence={conf("mrn")} edited={isEdited("mrn")} onChange={upd("patient", "mrn")} />
               <Field label="Accession ID#" value={form.patient.accession_id} confidence={conf("accession_id")} edited={isEdited("accession_id")} onChange={upd("patient", "accession_id")} />
+              <Field label="Specimen Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} />
+              <Field label="Specimen Storage Temperature" value={form.specimen.source} edited={isEdited("storage_temp")} onChange={upd("specimen", "source")} placeholder="Ambient, Frozen, Refrigerated" />
+              <Field label="Ordering Physician" value={form.ordering.physician} confidence={conf("physician")} edited={isEdited("physician")} required onChange={upd("ordering", "physician")} />
+              <Field label="NPI" value={form.ordering.npi} confidence={conf("npi")} edited={isEdited("npi")} onChange={upd("ordering", "npi")} placeholder="10-digit NPI" />
             </div>
           </Section>
         )}
 
-        {/* === Section 3: Specimen & Shipping === */}
+        {/* === Section 3: Shipping (shared) === */}
         <Section
           color={MV.blue}
-          title="Specimen & Shipping"
+          title="Shipping"
           status={sectionStatus.specimen.status}
           statusDetail={sectionStatus.specimen.detail}
         >
           <div className="grid grid-cols-3 gap-4">
             <Field label="Tracking Number" value={form.specimen.tracking_number} edited={isEdited("tracking_number")} onChange={upd("specimen", "tracking_number")} />
-            <Field label="Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} />
-            <Field label="Specimen Storage Temp" value={form.specimen.source} edited={isEdited("storage_temp")} onChange={upd("specimen", "source")} placeholder="Ambient, Frozen, Refrigerated" />
           </div>
         </Section>
 

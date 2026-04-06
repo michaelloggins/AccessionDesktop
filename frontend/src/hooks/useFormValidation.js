@@ -55,32 +55,31 @@ export default function useFormValidation(form, orderType) {
     // --- Ordering Facility ---
     const facilityResults = [
       checkField(form.ordering.customer_id, { required: true }),
-      checkField(form.ordering.physician, { required: true }),
-      checkField(form.ordering.npi, { pattern: "^\\d{10}$", patternMsg: "Must be 10 digits" }),
       checkField(form.ordering.facility_code, { warnEmpty: true, warnMsg: "Helps with matching" }),
     ];
     const facility = summarizeSection(facilityResults);
 
-    // --- Patient / Owner ---
+    // --- Patient Information ---
     const patientResults = isVet
       ? [
+          checkField(form.patient.owner_name, { required: true }),
           checkField(form.patient.name, { required: true }),
           checkField(form.patient.species, { required: true }),
-          checkField(form.patient.owner_name, { required: true }),
-          checkField(form.patient.breed, { warnEmpty: true, warnMsg: "Recommended" }),
+          checkField(form.ordering.physician, { required: true }),
           checkField(form.patient.dob, { warnEmpty: true, warnMsg: "Recommended" }),
+          checkField(form.specimen.collection_date, { warnEmpty: true, warnMsg: "Recommended" }),
         ]
       : [
           checkField(form.patient.name, { required: true }),
           checkField(form.patient.first_name, { required: true }),
+          checkField(form.ordering.physician, { required: true }),
           checkField(form.patient.dob, { required: true, pattern: "^(0[1-9]|1[0-2])/(0[1-9]|[12]\\d|3[01])/(19|20)\\d{2}$", patternMsg: "MM/DD/YYYY" }),
           checkField(form.patient.mrn, { warnEmpty: true, warnMsg: "Recommended" }),
         ];
     const patient = summarizeSection(patientResults);
 
-    // --- Specimen & Shipping ---
+    // --- Shipping ---
     const specimenResults = [
-      checkField(form.specimen.collection_date, { warnEmpty: true, warnMsg: "Recommended" }),
       checkField(form.specimen.tracking_number, { warnEmpty: true, warnMsg: "Recommended" }),
     ];
     const specimen = summarizeSection(specimenResults);
