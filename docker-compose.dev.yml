@@ -14,6 +14,7 @@ services:
     environment:
       - LOG_LEVEL=DEBUG
       - APIM_BASE_URL=http://mock-apim:8081  # Use mock APIM in dev
+      - AZURE_MAPS_KEY=${AZURE_MAPS_KEY:-}
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5000", "--reload"]
 
   frontend:

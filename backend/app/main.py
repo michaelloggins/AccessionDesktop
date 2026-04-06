@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import accession, gates, lookup, scan
+from app.routers import accession, address, gates, lookup, scan
 from app.services.gate_checker import load_gate_config
 
 # Configure logging
@@ -36,6 +36,7 @@ app.include_router(scan.router)
 app.include_router(gates.router)
 app.include_router(accession.router)
 app.include_router(lookup.router)
+app.include_router(address.router)
 
 
 @app.on_event("startup")

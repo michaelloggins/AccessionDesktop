@@ -13,6 +13,7 @@ import TestPicker from "./TestPicker";
 import ManifestOrderForm from "./ManifestOrderForm";
 import ManifestOrderTable from "./ManifestOrderTable";
 import ManifestReview from "./ManifestReview";
+import FacilityLookup from "./FacilityLookup";
 import { COUNTRY_OPTIONS } from "../data/countries";
 import { validateSpecimens, validateOrder } from "../services/specimenValidator";
 
@@ -179,11 +180,8 @@ export default function AccessionForm({
           locked={isManifestShared}
         >
           <div className="flex flex-col gap-4">
-            {/* Row: Facility Name + Facility ID */}
-            <div className="grid grid-cols-3 gap-4">
-              <Field label="Facility Name" value={form.ordering.customer_id} confidence={conf("facility")} edited={isEdited("customer_id")} required onChange={upd("ordering", "customer_id")} span={2} />
-              <Field label="Facility ID" value={form.ordering.facility_code} confidence={conf("facility_code")} edited={isEdited("facility_code")} onChange={upd("ordering", "facility_code")} />
-            </div>
+            {/* Facility Name + ID with autocomplete (Azure Maps + RASCLIENTS) */}
+            <FacilityLookup form={form} onUpdateSection={onUpdateSection} />
             {/* Stacked: Address 1, Address 2 */}
             <Field label="Address 1" value={form.ordering.address1 || ""} edited={isEdited("address1")} onChange={upd("ordering", "address1")} />
             <Field label="Address 2" value={form.ordering.address2 || ""} edited={isEdited("address2")} onChange={upd("ordering", "address2")} />

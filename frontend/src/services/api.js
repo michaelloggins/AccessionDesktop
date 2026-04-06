@@ -1,6 +1,5 @@
 /**
  * API client for the MVD Accessioning backend.
- * All calls go through the Vite proxy to http://localhost:5000.
  */
 
 const API_BASE = "/api";
@@ -78,4 +77,32 @@ export async function searchTests(query = "", market = "", species = "") {
   if (market) params.set("market", market);
   if (species) params.set("species", species);
   return request(`/lookup/tests?${params.toString()}`);
+}
+
+// ─── Address / Facility APIs ───
+
+/** Azure Maps address autocomplete */
+export async function addressAutocomplete(query) {
+  return request(`/address/autocomplete?q=${encodeURIComponent(query)}`);
+}
+
+/** Search RASCLIENTS by name or address */
+export async function facilitySearch(query) {
+  return request(`/address/facility/search?q=${encodeURIComponent(query)}`);
+}
+
+/** Lookup facility by ExternalClientID */
+export async function facilityLookup(id) {
+  return request(`/address/facility/lookup?id=${encodeURIComponent(id)}`);
+}
+
+/** Validate/match facility by name + address */
+export async function facilityValidate({ name, address, city, state, zip }) {
+  const params = new URLSearchParams();
+  if (name) params.set("name", name);
+  if (address) params.set("address", address);
+  if (city) params.set("city", city);
+  if (state) params.set("state", state);
+  if (zip) params.set("zip", zip);
+  return request(`/address/facility/validate?${params.toString()}`);
 }
