@@ -1,36 +1,14 @@
 /**
- * AccessionForm — Right panel form with Human/Vet toggle,
- * per-test specimen types, and manifest mode support.
+ * AccessionForm — Right panel form with collapsible validated sections.
+ *
+ * Section order: Ordering Facility → Patient/Owner → Specimen → Tests → Notes
+ * Each section is a collapsible card with green/yellow/red validation status.
  */
 import { MV } from "../theme";
 import Field from "./Field";
+import Section from "./Section";
 import TestPicker from "./TestPicker";
-import CustomerAutocomplete from "./CustomerAutocomplete";
-
-function Section({ color, title, children, locked }) {
-  return (
-    <div className="mb-7">
-      <div className="flex items-center gap-2.5 mb-3">
-        <div className="w-1 h-[18px] rounded-sm" style={{ background: color }} />
-        <h3 className="text-[15px] font-bold m-0" style={{ color: MV.text }}>{title}</h3>
-        {locked && (
-          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ color: MV.tealDark, backgroundColor: MV.tealLight }}>
-            MANIFEST — SHARED
-          </span>
-        )}
-      </div>
-      <div
-        className="rounded-lg p-5"
-        style={{
-          backgroundColor: locked ? MV.gray50 : MV.white,
-          border: `1px solid ${locked ? MV.teal : MV.gray200}`,
-        }}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
+import useFormValidation from "../hooks/useFormValidation";
 
 function ModeToggle({ label, options, value, onChange }) {
   return (
@@ -87,6 +65,9 @@ export default function AccessionForm({
   const isVet = orderType === "veterinary";
   const isManifestShared = manifestMode && manifestIndex > 0;
 
+  // Real-time section validation
+  const sectionStatus = useFormValidation(form, orderType);
+
   return (
     <div className="flex-1 overflow-auto px-9 py-6 pb-16" style={{ backgroundColor: MV.offWhite }}>
       <div className="max-w-[900px] mx-auto">
@@ -105,7 +86,6 @@ export default function AccessionForm({
             value={orderType}
             onChange={onSetOrderType}
           />
-
           <div className="flex items-center gap-4">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -119,7 +99,6 @@ export default function AccessionForm({
                 Multi-Order Manifest
               </span>
             </label>
-
             {manifestMode && (
               <span
                 className="text-xs font-bold px-2 py-1 rounded"
@@ -131,9 +110,47 @@ export default function AccessionForm({
           </div>
         </div>
 
-        {/* Patient / Owner — Vet Mode */}
+        {/* === Section 1: Ordering Facility === */}
+        <Section
+          color={MV.teal}
+          title="Ordering Facility"
+          status={sectionStatus.facility.status}
+          statusDetail={sectionStatus.facility.detail}
+          locked={isManifestShared}
+        >
+          <div className="grid grid-cols-3 gap-4">
+            <Field label="Facility Name" value={form.ordering.customer_id} confidence={conf("facility")} edited={isEdited("customer_id")} required onChange={upd("ordering", "customer_id")} span={2} />
+            <Field label="Facility ID" value={form.ordering.facility_code} confidence={conf("facility_code")} edited={isEdited("facility_code")} onChange={upd("ordering", "facility_code")} />
+            <Field label="Address 1" value={form.ordering.address1 || ""} edited={isEdited("address1")} onChange={upd("ordering", "address1")} span={2} />
+            <Field label="Address 2" value={form.ordering.address2 || ""} edited={isEdited("address2")} onChange={upd("ordering", "address2")} />
+            <Field label="City" value={form.ordering.city || ""} edited={isEdited("city")} onChange={upd("ordering", "city")} />
+            <Field label="State" value={form.ordering.state || ""} edited={isEdited("state")} onChange={upd("ordering", "state")} />
+            <Field label="Zip" value={form.ordering.zip || ""} edited={isEdited("zip")} onChange={upd("ordering", "zip")} />
+            <Field label="Country" value={form.ordering.country || ""} edited={isEdited("country")} onChange={upd("ordering", "country")} placeholder="US" />
+            <Field label="Email" value={form.ordering.email || ""} edited={isEdited("email")} onChange={upd("ordering", "email")} />
+            <Field label="Phone" value={form.ordering.phone || ""} edited={isEdited("phone")} onChange={upd("ordering", "phone")} />
+            <Field label="Fax" value={form.ordering.fax || ""} edited={isEdited("fax")} onChange={upd("ordering", "fax")} />
+            <Field
+              label={isVet ? "Ordering Veterinarian" : "Ordering Physician"}
+              value={form.ordering.physician}
+              confidence={conf("physician")}
+              edited={isEdited("physician")}
+              required
+              onChange={upd("ordering", "physician")}
+            />
+            <Field label="NPI" value={form.ordering.npi} confidence={conf("npi")} edited={isEdited("npi")} onChange={upd("ordering", "npi")} placeholder="10-digit NPI" />
+            <Field label="Laboratory Contact" value={form.ordering.lab_contact || ""} edited={isEdited("lab_contact")} onChange={upd("ordering", "lab_contact")} />
+          </div>
+        </Section>
+
+        {/* === Section 2: Patient & Owner (Vet) === */}
         {isVet && (
-          <Section color={MV.greenGrad} title="Patient & Owner Information">
+          <Section
+            color={MV.greenGrad}
+            title="Patient & Owner Information"
+            status={sectionStatus.patient.status}
+            statusDetail={sectionStatus.patient.detail}
+          >
             <div className="grid grid-cols-3 gap-4">
               <Field label="Pet Name" value={form.patient.name} confidence={conf("patient_name")} edited={isEdited("patient_name")} required onChange={upd("patient", "name")} />
               <Field label="Species" value={form.patient.species} confidence={conf("species")} edited={isEdited("species")} required onChange={upd("patient", "species")} placeholder="Canine, Feline..." />
@@ -145,9 +162,14 @@ export default function AccessionForm({
           </Section>
         )}
 
-        {/* Patient Info — Human Mode */}
+        {/* === Section 2: Patient Information (Human) === */}
         {!isVet && (
-          <Section color={MV.greenGrad} title="Patient Information">
+          <Section
+            color={MV.greenGrad}
+            title="Patient Information"
+            status={sectionStatus.patient.status}
+            statusDetail={sectionStatus.patient.detail}
+          >
             <div className="grid grid-cols-3 gap-4">
               <Field label="Last Name" value={form.patient.name} confidence={conf("patient_name")} edited={isEdited("name")} required onChange={upd("patient", "name")} />
               <Field label="First Name" value={form.patient.first_name} confidence={conf("first_name")} edited={isEdited("first_name")} required onChange={upd("patient", "first_name")} />
@@ -159,35 +181,13 @@ export default function AccessionForm({
           </Section>
         )}
 
-        {/* Ordering Info — shared in manifest mode */}
-        <Section color={MV.teal} title="Ordering Information" locked={isManifestShared}>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-3">
-              <CustomerAutocomplete
-                value={form.ordering.customer_id}
-                facilityCode={form.ordering.facility_code}
-                onSelect={(customer) =>
-                  onUpdateSection("ordering", {
-                    customer_id: customer.customer_id,
-                    facility_code: customer.facility_code,
-                  })
-                }
-              />
-            </div>
-            <Field
-              label={isVet ? "Ordering Veterinarian" : "Ordering Physician"}
-              value={form.ordering.physician}
-              confidence={conf("physician")}
-              edited={isEdited("physician")}
-              required
-              onChange={upd("ordering", "physician")}
-            />
-            <Field label="NPI" value={form.ordering.npi} confidence={conf("npi")} edited={isEdited("npi")} onChange={upd("ordering", "npi")} placeholder="10-digit NPI" />
-          </div>
-        </Section>
-
-        {/* Specimen / Shipping */}
-        <Section color={MV.blue} title="Specimen & Shipping">
+        {/* === Section 3: Specimen & Shipping === */}
+        <Section
+          color={MV.blue}
+          title="Specimen & Shipping"
+          status={sectionStatus.specimen.status}
+          statusDetail={sectionStatus.specimen.detail}
+        >
           <div className="grid grid-cols-3 gap-4">
             <Field label="Tracking Number" value={form.specimen.tracking_number} edited={isEdited("tracking_number")} onChange={upd("specimen", "tracking_number")} />
             <Field label="Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} />
@@ -195,8 +195,13 @@ export default function AccessionForm({
           </div>
         </Section>
 
-        {/* Tests Ordered — with per-test specimen type */}
-        <Section color={MV.warning} title="Tests Ordered">
+        {/* === Section 4: Tests Ordered === */}
+        <Section
+          color={MV.warning}
+          title="Tests Ordered"
+          status={sectionStatus.tests.status}
+          statusDetail={sectionStatus.tests.detail}
+        >
           <TestPicker
             tests={form.tests}
             onAdd={(test) => onUpdateForm({ tests: [...form.tests, test] })}
@@ -209,12 +214,14 @@ export default function AccessionForm({
           />
         </Section>
 
-        {/* Clinical Notes / Diagnosis */}
-        <div className="mb-7">
-          <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-1 h-[18px] rounded-sm" style={{ backgroundColor: MV.gray400 }} />
-            <h3 className="text-[15px] font-bold m-0" style={{ color: MV.text }}>Clinical Notes & Diagnosis</h3>
-          </div>
+        {/* === Section 5: Clinical Notes & Diagnosis === */}
+        <Section
+          color={MV.gray400}
+          title="Clinical Notes & Diagnosis"
+          status={sectionStatus.notes.status}
+          statusDetail={sectionStatus.notes.detail}
+          defaultOpen={false}
+        >
           <textarea
             value={form.diagnosis_codes?.join(", ") || ""}
             onChange={(e) => onUpdateForm({ diagnosis_codes: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
@@ -223,12 +230,12 @@ export default function AccessionForm({
             className="w-full px-3.5 py-3 text-sm rounded-lg outline-none resize-y leading-relaxed"
             style={{ border: `1.5px solid ${MV.gray200}`, color: MV.text, backgroundColor: MV.white }}
           />
-        </div>
+        </Section>
 
-        {/* Validation errors */}
+        {/* Validation errors from backend */}
         {validation && !validation.valid && (
           <div className="mb-6 rounded-lg p-4" style={{ backgroundColor: MV.dangerLight, border: `1px solid ${MV.dangerBorder}` }}>
-            <div className="text-sm font-semibold mb-2" style={{ color: MV.danger }}>Validation Errors</div>
+            <div className="text-sm font-semibold mb-2" style={{ color: MV.danger }}>Server Validation Errors</div>
             {validation.errors?.map((e, i) => (
               <div key={i} className="text-sm" style={{ color: MV.danger }}>
                 <span className="font-mono text-xs">{e.field}</span>: {e.message}
@@ -268,8 +275,6 @@ export default function AccessionForm({
                 {"\u26A0"} {gateWarning}
               </div>
             )}
-
-            {/* Manifest: Next Order button after submit */}
             {manifestMode && submitResult && (
               <button
                 onClick={onNextManifestOrder}
@@ -279,7 +284,6 @@ export default function AccessionForm({
                 Next Order (#{manifestIndex + 2})
               </button>
             )}
-
             <button
               onClick={submitReady ? onSubmit : onValidate}
               disabled={loading}

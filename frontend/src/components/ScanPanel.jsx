@@ -224,9 +224,23 @@ export default function ScanPanel({
           )}
         </div>
 
-        {/* Upload button (when no preview) */}
+        {/* Scan + Upload buttons (when no preview) */}
         {!hasPreview && mode === "scan" && (
-          <div className="px-4 pb-3">
+          <div className="px-4 pb-3 flex flex-col gap-2">
+            <button
+              disabled={loading}
+              className="py-[11px] rounded-md border-none cursor-pointer text-sm font-bold w-full disabled:opacity-50"
+              style={{
+                backgroundColor: MV.gray900,
+                color: "#fff",
+              }}
+              onClick={() => {
+                // TWAIN capture — placeholder until TWAIN integration is ready
+                alert("TWAIN scanner capture coming soon. Use Upload for now.");
+              }}
+            >
+              Scan Requisition
+            </button>
             <button
               onClick={() => inputRef.current?.click()}
               disabled={loading}

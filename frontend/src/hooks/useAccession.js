@@ -17,7 +17,7 @@ const initialState = {
   gateResults: {},
   form: {
     patient: { name: "", first_name: "", middle_name: "", dob: "", mrn: "", accession_id: "", species: "", breed: "", owner_name: "" },
-    ordering: { customer_id: "", facility_code: "", physician: "", npi: "" },
+    ordering: { customer_id: "", facility_code: "", physician: "", npi: "", address1: "", address2: "", city: "", state: "", zip: "", country: "", email: "", phone: "", fax: "", lab_contact: "" },
     specimen: { tracking_number: "", fulcrum_specimen_id: "", type: "", source: "", collection_date: "", received_date: "" },
     tests: [],            // Each test: { code, name, specimen_type }
     priority: "Routine",
