@@ -6,8 +6,16 @@
  */
 import { MV } from "../theme";
 import Field from "./Field";
+import Select from "./Select";
 import Section from "./Section";
 import TestPicker from "./TestPicker";
+
+const STORAGE_TEMP_OPTIONS = [
+  { value: "Ambient", label: "Ambient" },
+  { value: "Refrigerated", label: "Refrigerated" },
+  { value: "Frozen", label: "Frozen" },
+  { value: "Thawed", label: "Thawed" },
+];
 import useFormValidation from "../hooks/useFormValidation";
 
 function ModeToggle({ label, options, value, onChange }) {
@@ -167,7 +175,7 @@ export default function AccessionForm({
               {/* Row: Specimen Collection Date, Storage Temp, Specimen ID# */}
               <div className="grid grid-cols-3 gap-4">
                 <Field label="Specimen Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} />
-                <Field label="Specimen Storage Temp" value={form.specimen.source} edited={isEdited("storage_temp")} onChange={upd("specimen", "source")} placeholder="Ambient, Frozen, Refrigerated" />
+                <Select label="Specimen Storage Temp" value={form.specimen.source} options={STORAGE_TEMP_OPTIONS} onChange={upd("specimen", "source")} placeholder="Select..." />
                 <Field label="Specimen ID#" value={form.patient.mrn} confidence={conf("mrn")} edited={isEdited("mrn")} onChange={upd("patient", "mrn")} />
               </div>
               {/* Row: Ordering Veterinarian (full width) */}
@@ -184,17 +192,28 @@ export default function AccessionForm({
             status={sectionStatus.patient.status}
             statusDetail={sectionStatus.patient.detail}
           >
-            <div className="grid grid-cols-3 gap-4">
-              <Field label="Last Name" value={form.patient.name} confidence={conf("patient_name")} edited={isEdited("name")} required onChange={upd("patient", "name")} />
-              <Field label="First Name" value={form.patient.first_name} confidence={conf("first_name")} edited={isEdited("first_name")} required onChange={upd("patient", "first_name")} />
-              <Field label="Middle Name" value={form.patient.middle_name} confidence={conf("middle_name")} edited={isEdited("middle_name")} onChange={upd("patient", "middle_name")} />
-              <Field label="Date of Birth" value={form.patient.dob} confidence={conf("dob")} edited={isEdited("dob")} required onChange={upd("patient", "dob")} placeholder="MM/DD/YYYY" />
-              <Field label="MRN" value={form.patient.mrn} confidence={conf("mrn")} edited={isEdited("mrn")} onChange={upd("patient", "mrn")} />
-              <Field label="Accession ID#" value={form.patient.accession_id} confidence={conf("accession_id")} edited={isEdited("accession_id")} onChange={upd("patient", "accession_id")} />
-              <Field label="Specimen Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} />
-              <Field label="Specimen Storage Temperature" value={form.specimen.source} edited={isEdited("storage_temp")} onChange={upd("specimen", "source")} placeholder="Ambient, Frozen, Refrigerated" />
-              <Field label="Ordering Physician" value={form.ordering.physician} confidence={conf("physician")} edited={isEdited("physician")} required onChange={upd("ordering", "physician")} />
-              <Field label="NPI" value={form.ordering.npi} confidence={conf("npi")} edited={isEdited("npi")} onChange={upd("ordering", "npi")} placeholder="10-digit NPI" />
+            <div className="flex flex-col gap-4">
+              {/* Row: Last Name, First Name, Middle Name */}
+              <div className="grid grid-cols-3 gap-4">
+                <Field label="Last Name" value={form.patient.name} confidence={conf("patient_name")} edited={isEdited("name")} required onChange={upd("patient", "name")} />
+                <Field label="First Name" value={form.patient.first_name} confidence={conf("first_name")} edited={isEdited("first_name")} required onChange={upd("patient", "first_name")} />
+                <Field label="Middle Name" value={form.patient.middle_name} confidence={conf("middle_name")} edited={isEdited("middle_name")} onChange={upd("patient", "middle_name")} />
+              </div>
+              {/* Row: DOB, Accession ID# */}
+              <div className="grid grid-cols-3 gap-4">
+                <Field label="Date of Birth" value={form.patient.dob} confidence={conf("dob")} edited={isEdited("dob")} required onChange={upd("patient", "dob")} placeholder="MM/DD/YYYY" />
+                <Field label="Accession ID#" value={form.patient.accession_id} confidence={conf("accession_id")} edited={isEdited("accession_id")} onChange={upd("patient", "accession_id")} />
+              </div>
+              {/* Row: Specimen Collection Date, Storage Temp */}
+              <div className="grid grid-cols-3 gap-4">
+                <Field label="Specimen Collection Date" value={form.specimen.collection_date} confidence={conf("collection_date")} edited={isEdited("collection_date")} onChange={upd("specimen", "collection_date")} />
+                <Select label="Specimen Storage Temp" value={form.specimen.source} options={STORAGE_TEMP_OPTIONS} onChange={upd("specimen", "source")} placeholder="Select..." />
+              </div>
+              {/* Row: Ordering Physician, NPI */}
+              <div className="grid grid-cols-3 gap-4">
+                <Field label="Ordering Physician" value={form.ordering.physician} confidence={conf("physician")} edited={isEdited("physician")} required onChange={upd("ordering", "physician")} span={2} />
+                <Field label="NPI" value={form.ordering.npi} confidence={conf("npi")} edited={isEdited("npi")} onChange={upd("ordering", "npi")} placeholder="10-digit NPI" />
+              </div>
             </div>
           </Section>
         )}
