@@ -25,6 +25,7 @@ export default function ScanPanel({
   ocrEnabled,
 }) {
   const [mode, setMode] = useState("scan");
+  const [collapsed, setCollapsed] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [showScannerSettings, setShowScannerSettings] = useState(false);
   const [scannerSettings, setScannerSettings] = useState(DEFAULT_SCANNER_SETTINGS);
@@ -87,13 +88,32 @@ export default function ScanPanel({
 
   const hasPreview = previewUrl != null;
 
+  // Collapsed state — thin sidebar with expand button
+  if (collapsed) {
+    return (
+      <div
+        className="flex flex-col items-center flex-shrink-0 py-3"
+        style={{ width: 40, borderRight: `1px solid ${MV.gray200}`, backgroundColor: MV.white }}
+      >
+        <button
+          onClick={() => setCollapsed(false)}
+          className="w-8 h-8 rounded flex items-center justify-center cursor-pointer border-none text-sm"
+          style={{ backgroundColor: MV.gray100, color: MV.gray500 }}
+          title="Expand scan panel"
+        >
+          {"\u25B6"}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div
       className="flex flex-col flex-shrink-0"
       style={{ width: 420, borderRight: `1px solid ${MV.gray200}`, backgroundColor: MV.white }}
     >
-      {/* Mode Toggle */}
-      <div className="px-5 py-3" style={{ borderBottom: `1px solid ${MV.gray100}` }}>
+      {/* Mode Toggle + Collapse button */}
+      <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: `1px solid ${MV.gray100}` }}>
         <div className="flex rounded-md overflow-hidden" style={{ border: `1px solid ${MV.gray200}` }}>
           {[
             { id: "scan", icon: "\u2398", label: "Scan / Upload" },
@@ -112,6 +132,14 @@ export default function ScanPanel({
             </button>
           ))}
         </div>
+        <button
+          onClick={() => setCollapsed(true)}
+          className="w-8 h-8 rounded flex items-center justify-center cursor-pointer border-none flex-shrink-0"
+          style={{ backgroundColor: MV.gray100, color: MV.gray500 }}
+          title="Collapse scan panel"
+        >
+          {"\u25C0"}
+        </button>
       </div>
 
       {/* Document Preview / Upload Zone */}
