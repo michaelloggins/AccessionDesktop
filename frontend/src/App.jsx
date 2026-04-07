@@ -9,6 +9,8 @@ import { MV } from "./theme";
 import useAccession from "./hooks/useAccession";
 import ScanPanel from "./components/ScanPanel";
 import AccessionForm from "./components/AccessionForm";
+import { ScannerConfig, LabelPrinterConfig, LaserPrinterConfig, DEFAULT_SCANNER_CONFIG, DEFAULT_LABEL_CONFIG, DEFAULT_LASER_CONFIG } from "./components/DeviceConfig";
+import DeviceChip from "./components/DeviceChip";
 import QueueView from "./components/QueueView";
 
 export default function App() {
@@ -41,8 +43,13 @@ export default function App() {
 
   // Station and device state
   const [stationId, setStationId] = useState("ScanStation-1");
-  const [scannerStatus, setScannerStatus] = useState("offline"); // "online", "offline", "busy"
-  const [printerStatus, setPrinterStatus] = useState("offline"); // future: label printer
+  const [scannerStatus, setScannerStatus] = useState("offline");
+  const [labelPrinterStatus, setLabelPrinterStatus] = useState("offline");
+  const [laserPrinterStatus, setLaserPrinterStatus] = useState("offline");
+  const [scannerConfig, setScannerConfig] = useState(DEFAULT_SCANNER_CONFIG);
+  const [labelConfig, setLabelConfig] = useState(DEFAULT_LABEL_CONFIG);
+  const [laserConfig, setLaserConfig] = useState(DEFAULT_LASER_CONFIG);
+  const [openConfig, setOpenConfig] = useState(null); // "scanner" | "label" | "laser" | "user" | null
 
   // Document preview state
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -107,6 +114,19 @@ export default function App() {
   const scanComplete = step === "review" || step === "validate" || step === "submit" || step === "done";
   const submitReady = step === "submit";
 
+  // Close config popout when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (openConfig && !e.target.closest("[data-config-popout]")) {
+        // Don't close if clicking inside a popout
+      }
+    };
+    // Simple: just close on escape
+    const escHandler = (e) => { if (e.key === "Escape") setOpenConfig(null); };
+    document.addEventListener("keydown", escHandler);
+    return () => document.removeEventListener("keydown", escHandler);
+  }, [openConfig]);
+
   // Load Roboto Condensed font
   useEffect(() => {
     const link = document.createElement("link");
@@ -117,7 +137,7 @@ export default function App() {
 
   return (
     <div
-      className="flex flex-col min-h-screen"
+      className="flex flex-col h-screen overflow-hidden"
       style={{ fontFamily: "'Roboto Condensed', Helvetica, Arial, sans-serif", color: MV.text, backgroundColor: MV.offWhite }}
     >
       {/* Header */}
@@ -139,47 +159,85 @@ export default function App() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Scanner status */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/15" title="Scanner status">
-            <div className={`w-[7px] h-[7px] rounded-full ${scannerStatus === "online" ? "bg-green-400" : scannerStatus === "busy" ? "bg-yellow-400" : "bg-red-400"}`} />
-            <span className="text-[11px] text-white font-medium">
-              Scanner {scannerStatus === "online" ? "Ready" : scannerStatus === "busy" ? "Busy" : "Offline"}
-            </span>
+        <div className="flex items-center gap-2">
+          {/* Station selector + gear */}
+          <DeviceChip
+            label={`Station ${stationId.split("-")[1] || "1"}`}
+            isSelect
+            selectValue={stationId}
+            selectOptions={[1,2,3,4,5,6].map(n => ({ value: `ScanStation-${n}`, label: `Station ${n}` }))}
+            onSelectChange={setStationId}
+          />
+
+          <div className="w-px h-5 bg-white/20" />
+
+          {/* Scanner + gear */}
+          <div className="relative">
+            <DeviceChip
+              status={scannerStatus}
+              label="Scanner"
+              onGearClick={() => setOpenConfig(openConfig === "scanner" ? null : "scanner")}
+            />
+            {openConfig === "scanner" && (
+              <ScannerConfig config={scannerConfig} onChange={setScannerConfig} onClose={() => setOpenConfig(null)} />
+            )}
           </div>
 
-          {/* Label printer status */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/15" title="Label printer status">
-            <div className={`w-[7px] h-[7px] rounded-full ${printerStatus === "online" ? "bg-green-400" : "bg-red-400"}`} />
-            <span className="text-[11px] text-white font-medium">
-              Printer {printerStatus === "online" ? "Ready" : "Offline"}
-            </span>
+          {/* Label Printer + gear */}
+          <div className="relative">
+            <DeviceChip
+              status={labelPrinterStatus}
+              label="Label"
+              onGearClick={() => setOpenConfig(openConfig === "label" ? null : "label")}
+            />
+            {openConfig === "label" && (
+              <LabelPrinterConfig config={labelConfig} onChange={setLabelConfig} onClose={() => setOpenConfig(null)} />
+            )}
           </div>
 
-          <div className="w-px h-5 bg-white/25" />
+          {/* Laser Printer + gear */}
+          <div className="relative">
+            <DeviceChip
+              status={laserPrinterStatus}
+              label="Laser"
+              onGearClick={() => setOpenConfig(openConfig === "laser" ? null : "laser")}
+            />
+            {openConfig === "laser" && (
+              <LaserPrinterConfig config={laserConfig} onChange={setLaserConfig} onClose={() => setOpenConfig(null)} />
+            )}
+          </div>
 
-          {/* Station ID selector */}
-          <select
-            value={stationId}
-            onChange={(e) => setStationId(e.target.value)}
-            className="text-[12px] font-semibold rounded px-2 py-1 cursor-pointer outline-none"
-            style={{
-              backgroundColor: "rgba(255,255,255,0.15)",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.3)",
-              appearance: "none",
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='white' d='M2 3l3 3 3-3'/%3E%3C/svg%3E")`,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 6px center",
-              paddingRight: "20px",
-            }}
-          >
-            {[1, 2, 3, 4, 5, 6].map((n) => (
-              <option key={n} value={`ScanStation-${n}`} style={{ color: "#333" }}>
-                Station {n}
-              </option>
-            ))}
-          </select>
+          <div className="w-px h-5 bg-white/20" />
+
+          {/* User avatar */}
+          <div className="relative">
+            <button
+              onClick={() => setOpenConfig(openConfig === "user" ? null : "user")}
+              className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border-none text-xs font-bold"
+              style={{ backgroundColor: "rgba(255,255,255,0.2)", color: "#fff", border: "1px solid rgba(255,255,255,0.3)" }}
+              title="User menu"
+            >
+              ML
+            </button>
+            {openConfig === "user" && (
+              <div
+                className="absolute top-full mt-1 right-0 z-50 rounded-lg w-48 overflow-hidden"
+                style={{ backgroundColor: MV.white, border: `1px solid ${MV.gray200}`, boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}
+              >
+                <div className="px-3 py-2.5" style={{ borderBottom: `1px solid ${MV.gray100}` }}>
+                  <div className="text-sm font-semibold" style={{ color: MV.text }}>M. Loggins</div>
+                  <div className="text-[11px]" style={{ color: MV.textMuted }}>mloggins@miravistalabs.com</div>
+                </div>
+                <button
+                  className="w-full px-3 py-2 text-left text-xs font-semibold cursor-pointer bg-transparent border-none hover:bg-gray-50"
+                  style={{ color: MV.danger }}
+                  onClick={() => alert("Logout")}
+                >
+                  Sign Out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
