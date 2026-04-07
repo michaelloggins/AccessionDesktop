@@ -215,7 +215,7 @@ export default function App() {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden min-w-0">
         {tab === "accession" && (
           <>
             <ScanPanel

@@ -133,7 +133,7 @@ export default function AccessionForm({
   const sectionStatus = useFormValidation(form, orderType);
 
   return (
-    <div className="flex-1 overflow-auto px-9 py-6 pb-16" style={{ backgroundColor: MV.offWhite }}>
+    <div className="flex-1 min-w-0 overflow-auto px-9 py-6 pb-16" style={{ backgroundColor: MV.offWhite }}>
       <div className="max-w-[900px] mx-auto">
 
         {/* Mode Toggles Bar */}
