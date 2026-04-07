@@ -39,10 +39,15 @@ export default function App() {
     fullReset,
   } = useAccession();
 
+  // Station and device state
+  const [stationId, setStationId] = useState("ScanStation-1");
+  const [scannerStatus, setScannerStatus] = useState("offline"); // "online", "offline", "busy"
+  const [printerStatus, setPrinterStatus] = useState("offline"); // future: label printer
+
   // Document preview state
   const [previewUrl, setPreviewUrl] = useState(null);
   const [previewType, setPreviewType] = useState(null);
-  const [ocrEnabled, setOcrEnabled] = useState(false); // Off by default — manual mode
+  const [ocrEnabled, setOcrEnabled] = useState(false);
 
   // Manifest orders list
   const [manifestOrders, setManifestOrders] = useState([]);
@@ -134,13 +139,47 @@ export default function App() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/15">
-            <div className="w-[7px] h-[7px] rounded-full bg-green-400" />
-            <span className="text-xs text-white font-medium">Online</span>
+        <div className="flex items-center gap-3">
+          {/* Scanner status */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/15" title="Scanner status">
+            <div className={`w-[7px] h-[7px] rounded-full ${scannerStatus === "online" ? "bg-green-400" : scannerStatus === "busy" ? "bg-yellow-400" : "bg-red-400"}`} />
+            <span className="text-[11px] text-white font-medium">
+              Scanner {scannerStatus === "online" ? "Ready" : scannerStatus === "busy" ? "Busy" : "Offline"}
+            </span>
           </div>
+
+          {/* Label printer status */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/15" title="Label printer status">
+            <div className={`w-[7px] h-[7px] rounded-full ${printerStatus === "online" ? "bg-green-400" : "bg-red-400"}`} />
+            <span className="text-[11px] text-white font-medium">
+              Printer {printerStatus === "online" ? "Ready" : "Offline"}
+            </span>
+          </div>
+
           <div className="w-px h-5 bg-white/25" />
-          <span className="text-[13px] text-white/85">Station DEV-01</span>
+
+          {/* Station ID selector */}
+          <select
+            value={stationId}
+            onChange={(e) => setStationId(e.target.value)}
+            className="text-[12px] font-semibold rounded px-2 py-1 cursor-pointer outline-none"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.15)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.3)",
+              appearance: "none",
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='white' d='M2 3l3 3 3-3'/%3E%3C/svg%3E")`,
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 6px center",
+              paddingRight: "20px",
+            }}
+          >
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <option key={n} value={`ScanStation-${n}`} style={{ color: "#333" }}>
+                Station {n}
+              </option>
+            ))}
+          </select>
         </div>
       </header>
 

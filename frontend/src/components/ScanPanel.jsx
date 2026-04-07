@@ -9,10 +9,12 @@
 import { useState, useRef, useCallback } from "react";
 import { MV } from "../theme";
 import GateChip from "./GateChip";
+import ScannerSettings, { DEFAULT_SCANNER_SETTINGS } from "./ScannerSettings";
 
 export default function ScanPanel({
   onUpload,
   onFileLoaded,
+  onScanCapture,
   loading,
   scanComplete,
   previewUrl,
@@ -24,6 +26,8 @@ export default function ScanPanel({
 }) {
   const [mode, setMode] = useState("scan");
   const [dragActive, setDragActive] = useState(false);
+  const [showScannerSettings, setShowScannerSettings] = useState(false);
+  const [scannerSettings, setScannerSettings] = useState(DEFAULT_SCANNER_SETTINGS);
   const inputRef = useRef(null);
 
   const handleDrag = useCallback((e) => {
@@ -226,25 +230,50 @@ export default function ScanPanel({
 
         {/* Scan + Upload buttons (when no preview) */}
         {!hasPreview && mode === "scan" && (
-          <div className="px-4 pb-3 flex flex-col gap-2">
-            <button
-              disabled={loading}
-              className="py-[11px] rounded-md border-none cursor-pointer text-sm font-bold w-full disabled:opacity-50"
-              style={{
-                backgroundColor: MV.gray900,
-                color: "#fff",
-              }}
-              onClick={() => {
-                // TWAIN capture — placeholder until TWAIN integration is ready
-                alert("TWAIN scanner capture coming soon. Use Upload for now.");
-              }}
-            >
-              Scan Requisition
-            </button>
+          <div className="px-4 pb-3 flex flex-col gap-2 relative">
+            {/* Scanner settings popout */}
+            {showScannerSettings && (
+              <ScannerSettings
+                settings={scannerSettings}
+                onChange={setScannerSettings}
+                onClose={() => setShowScannerSettings(false)}
+              />
+            )}
+
+            {/* Scan Requisition + Gear */}
+            <div className="flex gap-1.5">
+              <button
+                disabled={loading}
+                className="py-[9px] rounded-md border-none cursor-pointer text-[13px] font-bold flex-1 disabled:opacity-50"
+                style={{ backgroundColor: MV.gray900, color: "#fff" }}
+                onClick={() => {
+                  if (onScanCapture) {
+                    onScanCapture(scannerSettings);
+                  } else {
+                    alert("TWAIN scanner not connected. Use Upload instead.");
+                  }
+                }}
+              >
+                Scan Requisition
+              </button>
+              <button
+                onClick={() => setShowScannerSettings(!showScannerSettings)}
+                className="px-2.5 py-[9px] rounded-md cursor-pointer border-none"
+                style={{
+                  backgroundColor: showScannerSettings ? MV.teal : MV.gray700,
+                  color: "#fff",
+                }}
+                title="Scanner settings"
+              >
+                {"\u2699"}
+              </button>
+            </div>
+
+            {/* Upload Requisition */}
             <button
               onClick={() => inputRef.current?.click()}
               disabled={loading}
-              className="py-[11px] rounded-md border-none cursor-pointer text-sm font-bold w-full disabled:opacity-50"
+              className="py-[9px] rounded-md border-none cursor-pointer text-[13px] font-bold w-full disabled:opacity-50"
               style={{
                 background: MV.greenGrad,
                 color: "#fff",
