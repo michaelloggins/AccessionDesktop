@@ -3,8 +3,10 @@
  *
  * Two-panel layout: scan/upload panel on the left, form on the right.
  * Tab bar switches between "New Accession" and "Today's Queue".
+ *
+ * Integrates Dynamsoft Web TWAIN for scanner access via scannerService.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MV } from "./theme";
 import useAccession from "./hooks/useAccession";
 import ScanPanel from "./components/ScanPanel";
@@ -12,6 +14,7 @@ import AccessionForm from "./components/AccessionForm";
 import { ScannerConfig, LabelPrinterConfig, LaserPrinterConfig, DEFAULT_SCANNER_CONFIG, DEFAULT_LABEL_CONFIG, DEFAULT_LASER_CONFIG } from "./components/DeviceConfig";
 import DeviceChip from "./components/DeviceChip";
 import QueueView from "./components/QueueView";
+import { scannerService } from "./services/scanner";
 
 export default function App() {
   const [tab, setTab] = useState("accession");
@@ -56,11 +59,48 @@ export default function App() {
   const [previewType, setPreviewType] = useState(null);
   const [ocrEnabled, setOcrEnabled] = useState(false);
 
+  // TWAIN scanner state
+  const [scannerSources, setScannerSources] = useState([]);
+  const [scanError, setScanError] = useState(null);
+
   // Manifest orders list
   const [manifestOrders, setManifestOrders] = useState([]);
 
   // Track which fields the operator has manually edited
   const [editedFields, setEditedFields] = useState(new Set());
+
+  // ─── Initialize Dynamsoft Web TWAIN ───
+  useEffect(() => {
+    let destroyed = false;
+
+    // Register status callback before init
+    scannerService.onStatusChange((status) => {
+      if (!destroyed) {
+        setScannerStatus(status);
+      }
+    });
+
+    scannerService.init().then((dwt) => {
+      if (destroyed) return;
+      if (dwt) {
+        // Enumerate available TWAIN scanners
+        const sources = scannerService.getSourceNames();
+        setScannerSources(sources);
+        console.log("[App] Available TWAIN scanners:", sources);
+
+        // Auto-select Ricoh fi-8701 if present
+        const ricoh = sources.find((s) => s.toLowerCase().includes("fi-8701"));
+        if (ricoh) {
+          console.log("[App] Auto-selected scanner:", ricoh);
+        }
+      }
+    });
+
+    return () => {
+      destroyed = true;
+      scannerService.destroy();
+    };
+  }, []);
 
   // Build confidence map from extraction
   const confidences = {};
@@ -98,10 +138,57 @@ export default function App() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     setPreviewType(null);
+    setScanError(null);
     reset();
     setEditedFields(new Set());
     setManifestOrders([]);
+    scannerService.clearBuffer();
   };
+
+  /**
+   * Handle TWAIN scan capture.
+   * Called from ScanPanel when "Scan Requisition" is clicked.
+   * Acquires image(s) from the scanner, displays preview, and optionally sends to OCR.
+   */
+  const handleScanCapture = useCallback(async (settings) => {
+    setScanError(null);
+
+    if (!scannerService.isReady()) {
+      setScanError("Scanner not available. Ensure Dynamsoft Service is running and refresh the page.");
+      return;
+    }
+
+    try {
+      const result = await scannerService.scan(settings);
+
+      if (result.pageCount === 0) {
+        setScanError("No pages scanned. Check that paper is loaded in the scanner.");
+        return;
+      }
+
+      // Use the first scanned image as preview
+      const firstBlob = result.images[0];
+      if (firstBlob) {
+        const url = URL.createObjectURL(firstBlob);
+        handleFileLoaded(url, "image");
+
+        // If OCR is enabled, send the scanned image to the extraction endpoint
+        if (ocrEnabled) {
+          // Create a File object from the blob for the upload API
+          const file = new File([firstBlob], "scanned-requisition.png", { type: "image/png" });
+          uploadAndExtract(file);
+        }
+      }
+
+      // If multiple pages were scanned, log it (future: multi-page support)
+      if (result.pageCount > 1) {
+        console.log(`[App] ${result.pageCount} pages scanned. Showing first page as preview.`);
+      }
+    } catch (err) {
+      console.error("[App] Scan capture failed:", err);
+      setScanError(err.message || "Scan failed. Check scanner connection.");
+    }
+  }, [ocrEnabled, previewUrl, uploadAndExtract]);
 
   const handleValidateAndSubmit = async () => {
     await runGateCheck("before_submit");
@@ -279,6 +366,7 @@ export default function App() {
             <ScanPanel
               onUpload={uploadAndExtract}
               onFileLoaded={handleFileLoaded}
+              onScanCapture={scannerService.isReady() ? handleScanCapture : null}
               loading={loading}
               scanComplete={scanComplete}
               previewUrl={previewUrl}
@@ -286,6 +374,9 @@ export default function App() {
               gateResults={gateResults}
               onReset={handleReset}
               ocrEnabled={ocrEnabled}
+              scannerReady={scannerService.isReady()}
+              scannerSources={scannerSources}
+              scanError={scanError}
             />
             <AccessionForm
               form={form}

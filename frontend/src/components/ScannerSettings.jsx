@@ -1,7 +1,7 @@
 /**
  * ScannerSettings — Popout panel for TWAIN scanner configuration.
  *
- * Settings: Color mode, Paper size, DPI, Duplex, Source (flatbed/ADF)
+ * Settings: Scanner device, Color mode, Paper size, DPI, Duplex, Source (flatbed/ADF)
  */
 import { MV } from "../theme";
 import Select from "./Select";
@@ -31,8 +31,14 @@ const SOURCE_OPTIONS = [
   { value: "flatbed", label: "Flatbed" },
 ];
 
-export default function ScannerSettings({ settings, onChange, onClose }) {
+export default function ScannerSettings({ settings, onChange, onClose, scannerSources }) {
   const upd = (key) => (e) => onChange({ ...settings, [key]: e.target.value });
+
+  // Build device options from TWAIN enumeration
+  const deviceOptions = (scannerSources || []).map((name) => ({
+    value: name,
+    label: name,
+  }));
 
   return (
     <div
@@ -62,6 +68,29 @@ export default function ScannerSettings({ settings, onChange, onClose }) {
 
       {/* Settings grid */}
       <div className="px-4 py-3">
+        {/* Scanner device selector — full width */}
+        {deviceOptions.length > 0 && (
+          <div className="mb-3">
+            <Select
+              label="Scanner Device"
+              value={settings.deviceName || ""}
+              options={deviceOptions}
+              onChange={upd("deviceName")}
+              placeholder="Select scanner..."
+            />
+          </div>
+        )}
+
+        {/* No scanners detected notice */}
+        {deviceOptions.length === 0 && (
+          <div
+            className="mb-3 px-3 py-2 rounded text-xs"
+            style={{ backgroundColor: MV.warningLight, border: `1px solid ${MV.warningBorder}`, color: MV.warning }}
+          >
+            No TWAIN scanners detected. Ensure Dynamsoft Service is running and a scanner is connected.
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           <Select label="Color Mode" value={settings.colorMode} options={COLOR_OPTIONS} onChange={upd("colorMode")} />
           <Select label="Paper Size" value={settings.paperSize} options={PAPER_OPTIONS} onChange={upd("paperSize")} />
@@ -93,4 +122,5 @@ export const DEFAULT_SCANNER_SETTINGS = {
   dpi: "200",
   source: "adf",
   duplex: false,
+  deviceName: "",  // Will be populated from TWAIN device enumeration
 };

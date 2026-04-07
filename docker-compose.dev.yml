@@ -37,6 +37,7 @@ services:
       - "8080:8080"
     volumes:
       - paddleocr-cache:/root/.paddleocr   # Cache model weights across restarts
+      - ./testdata:/app/testdata:ro                          # Test PDFs for OCR testing
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
       interval: 30s

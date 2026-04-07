@@ -66,9 +66,20 @@ SAMPLE_RESPONSES = [
 
 
 def _build_markdown(sample: dict) -> str:
-    """Build a realistic Markdown response mimicking PaddleOCR-VL output."""
+    """Build a realistic Markdown response mimicking PaddleOCR-VL output.
+
+    Real OCR output is a mix of markdown tables, labeled lines, and
+    freeform text. This mock produces output that exercises all the
+    parsing strategies in the backend.
+    """
     tests_str = ", ".join(sample["tests"])
+    diagnosis = sample.get("diagnosis", "")
+    diagnosis_line = f"Diagnosis Code: {diagnosis}" if diagnosis else ""
+
     return f"""## Veterinary Requisition Form
+
+**MiraVista Diagnostics** — Fungal Reference Laboratory
+4610 Lisborn Drive, Indianapolis, IN 46268
 
 | Field | Value |
 |---|---|
@@ -84,10 +95,8 @@ def _build_markdown(sample: dict) -> str:
 | Collection Date | {sample["collection_date"]} |
 | Tests Ordered | {tests_str} |
 | Priority | {sample["priority"]} |
-| Diagnosis Code | {sample.get("diagnosis", "")} |
 
-**MiraVista Diagnostics — Fungal Reference Laboratory**
-4610 Lisborn Drive, Indianapolis, IN 46268
+{diagnosis_line}
 """
 
 
@@ -111,10 +120,15 @@ async def ocr(file: UploadFile = File(...)):
                     "markdown": markdown,
                     "layoutElements": [
                         {
-                            "bbox": [50, 50, 750, 900],
+                            "bbox": [50.0, 50.0, 750.0, 200.0],
+                            "category": "doc_title",
+                            "score": 0.95,
+                        },
+                        {
+                            "bbox": [50.0, 220.0, 750.0, 900.0],
                             "category": "table",
-                            "text": markdown,
-                        }
+                            "score": 0.92,
+                        },
                     ],
                 }
             ]

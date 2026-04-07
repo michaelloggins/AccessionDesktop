@@ -24,8 +24,9 @@ RUN apt-get update && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the API wrapper
+# Copy the API wrapper and test utilities
 COPY main.py .
+COPY test_capture.py .
 
 # Pre-download the model weights during build so first request is faster.
 # This adds ~2 GB to the image but avoids a long wait on first OCR call.

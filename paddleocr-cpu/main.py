@@ -70,43 +70,37 @@ async def ocr(file: UploadFile = File(...)):
         try:
             result = pipeline.predict(tmp_path)
 
-            # PaddleOCR-VL predict() returns a generator of page result dicts.
-            # Each dict has keys like: input_path, page_index, page_count,
-            # doc_preprocessor_res, layout_det_res, and the actual content.
-            # We need to find the markdown text in the nested structure.
+            # PaddleOCR-VL predict() returns a generator of Result objects
+            # (NOT plain dicts). Each Result has properties:
+            #   .markdown  — dict or str with the page markdown content
+            #   .json      — dict with full structured data under "res" key
+            #   .img       — dict with visualization images
+            # And methods: .print(), .save_to_json(), .save_to_markdown()
             pages = []
-            for page_result in result:
+            for res_obj in result:
                 page_idx = len(pages)
+                res_type = type(res_obj).__name__
 
-                # Log the structure for debugging
-                if isinstance(page_result, dict):
-                    # Filter out numpy arrays for logging
-                    safe_keys = {
-                        k: type(v).__name__
-                        for k, v in page_result.items()
-                    }
-                    logger.info("Page %d keys: %s", page_idx, safe_keys)
+                logger.info(
+                    "Page %d result type: %s",
+                    page_idx,
+                    res_type,
+                )
 
-                    # Try to find the markdown/text content
-                    markdown = _extract_markdown_from_result(page_result)
-                    logger.info(
-                        "Page %d extracted markdown (%d chars): %s",
-                        page_idx,
-                        len(markdown),
-                        markdown[:500],
-                    )
-                else:
-                    logger.info(
-                        "Page %d unexpected type: %s",
-                        page_idx,
-                        type(page_result).__name__,
-                    )
-                    markdown = str(page_result)
+                markdown = _extract_markdown_from_result(res_obj)
+                layout_elements = _extract_layout_elements(res_obj)
+
+                logger.info(
+                    "Page %d extracted markdown (%d chars): %s",
+                    page_idx,
+                    len(markdown),
+                    markdown[:500],
+                )
 
                 pages.append({
                     "pageId": page_idx,
                     "markdown": markdown,
-                    "layoutElements": [],
+                    "layoutElements": layout_elements,
                 })
 
         finally:
@@ -128,80 +122,129 @@ async def ocr(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def _extract_markdown_from_result(page_result: dict) -> str:
-    """Extract markdown text from a PaddleOCR-VL page result dict.
+def _extract_markdown_from_result(res_obj) -> str:
+    """Extract markdown text from a PaddleOCR-VL Result object.
 
-    The predict() result structure varies by PaddleOCR version. We try
-    multiple known paths to find the actual text content.
+    PaddleOCR-VL predict() yields Result objects with:
+      - .markdown property (dict with markdown content, or str)
+      - .save_to_markdown(path) method that writes .md files
+      - .json property with full structured result under "res" key
+    If the object is a plain dict (older API), fall back to key lookup.
     """
-    # Direct markdown key
-    if "markdown" in page_result:
-        return page_result["markdown"]
 
-    # Some versions use 'ocr_vl_res' with markdown inside
-    if "ocr_vl_res" in page_result:
-        ocr_vl = page_result["ocr_vl_res"]
-        if isinstance(ocr_vl, dict) and "markdown" in ocr_vl:
-            return ocr_vl["markdown"]
-        if isinstance(ocr_vl, str):
-            return ocr_vl
+    # --- Strategy 1: Result object .markdown property ---
+    try:
+        md = res_obj.markdown
+        if isinstance(md, str) and md.strip():
+            return md.strip()
+        if isinstance(md, dict):
+            # The markdown property may return a dict with content
+            # Try common keys
+            for key in ("markdown", "content", "text"):
+                if key in md and isinstance(md[key], str) and md[key].strip():
+                    return md[key].strip()
+            # If the dict has string values, concatenate them
+            parts = [v for v in md.values() if isinstance(v, str) and v.strip()]
+            if parts:
+                return "\n\n".join(parts)
+    except Exception as e:
+        logger.debug("Result.markdown access failed: %s", e)
 
-    # Try 'text' key
-    if "text" in page_result:
-        return page_result["text"]
+    # --- Strategy 2: save_to_markdown to temp dir and read the file ---
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            res_obj.save_to_markdown(save_path=tmpdir)
+            # Walk the temp dir for .md files
+            for root, dirs, files in os.walk(tmpdir):
+                for fname in files:
+                    if fname.endswith(".md"):
+                        fpath = os.path.join(root, fname)
+                        with open(fpath, "r", encoding="utf-8") as f:
+                            content = f.read().strip()
+                        if content:
+                            return content
+    except Exception as e:
+        logger.debug("save_to_markdown failed: %s", e)
 
-    # Try 'rec_texts' (list of recognized text strings)
+    # --- Strategy 3: Result object .json property → rec_texts ---
+    try:
+        j = res_obj.json
+        if isinstance(j, dict):
+            res_data = j.get("res", j)
+            # rec_texts: list of recognized text strings
+            rec_texts = res_data.get("rec_texts", [])
+            if rec_texts:
+                return "\n".join(str(t) for t in rec_texts)
+    except Exception as e:
+        logger.debug("Result.json access failed: %s", e)
+
+    # --- Strategy 4: Plain dict fallback (older API versions) ---
+    if isinstance(res_obj, dict):
+        return _extract_markdown_from_dict(res_obj)
+
+    # --- Strategy 5: str() fallback ---
+    try:
+        s = str(res_obj)
+        if s and len(s) > 10:
+            return s
+    except Exception:
+        pass
+
+    return ""
+
+
+def _extract_markdown_from_dict(page_result: dict) -> str:
+    """Fallback: extract markdown from a plain dict (older PaddleOCR versions)."""
+    for key in ("markdown", "text", "content"):
+        if key in page_result and isinstance(page_result[key], str):
+            return page_result[key]
+
     if "rec_texts" in page_result:
         texts = page_result["rec_texts"]
         if isinstance(texts, list):
             return "\n".join(str(t) for t in texts)
 
-    # Try 'layout_parsing_res' which may contain structured text
     if "layout_parsing_res" in page_result:
         lp = page_result["layout_parsing_res"]
         if isinstance(lp, dict):
-            if "markdown" in lp:
-                return lp["markdown"]
-            if "text" in lp:
-                return lp["text"]
+            for key in ("markdown", "text"):
+                if key in lp:
+                    return lp[key]
 
-    # Try extracting from layout_det_res boxes
-    if "layout_det_res" in page_result:
-        ld = page_result["layout_det_res"]
-        if isinstance(ld, dict) and "boxes" in ld:
-            texts = []
-            for box in ld["boxes"]:
+    # Walk string values
+    best = ""
+    for v in page_result.values():
+        if isinstance(v, str) and len(v) > len(best):
+            best = v
+        elif isinstance(v, dict):
+            for v2 in v.values():
+                if isinstance(v2, str) and len(v2) > len(best):
+                    best = v2
+    return best
+
+
+def _extract_layout_elements(res_obj) -> list:
+    """Extract layout bounding boxes from a Result object for UI overlay."""
+    elements = []
+    try:
+        j = res_obj.json if not isinstance(res_obj, dict) else res_obj
+        if isinstance(j, dict):
+            res_data = j.get("res", j)
+            layout = res_data.get("layout_det_res", {})
+            boxes = layout.get("boxes", []) if isinstance(layout, dict) else []
+            for box in boxes:
                 if isinstance(box, dict):
-                    t = box.get("text", box.get("rec_text", ""))
-                    if t:
-                        texts.append(str(t))
-            if texts:
-                return "\n".join(texts)
-
-    # Walk all string values in the dict looking for substantial text
-    best_text = ""
-    for key, value in page_result.items():
-        if isinstance(value, str) and len(value) > len(best_text):
-            best_text = value
-        elif isinstance(value, dict):
-            for k2, v2 in value.items():
-                if isinstance(v2, str) and len(v2) > len(best_text):
-                    best_text = v2
-
-    if best_text:
-        return best_text
-
-    # Last resort: dump all non-array keys as JSON for debugging
-    safe_dict = {}
-    for k, v in page_result.items():
-        if not hasattr(v, 'shape'):  # Skip numpy arrays
-            try:
-                json.dumps(v)
-                safe_dict[k] = v
-            except (TypeError, ValueError):
-                safe_dict[k] = f"<{type(v).__name__}>"
-
-    return json.dumps(safe_dict, indent=2, default=str)
+                    coord = box.get("coordinate", [])
+                    # Convert numpy floats to plain floats
+                    coord = [float(c) for c in coord] if coord else []
+                    elements.append({
+                        "bbox": coord,
+                        "category": box.get("label", "unknown"),
+                        "score": float(box.get("score", 0)),
+                    })
+    except Exception as e:
+        logger.debug("Layout extraction failed: %s", e)
+    return elements
 
 
 @app.get("/health")

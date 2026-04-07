@@ -5,6 +5,10 @@
  *   1. Empty — drag/drop zone or scanner button
  *   2. Preview — uploaded PDF/image shown as reference for manual entry
  *   3. Processing — AI extraction spinner (when OCR is enabled)
+ *
+ * TWAIN scanning:
+ *   Uses scannerService to acquire images from a TWAIN scanner.
+ *   Scanned images are displayed as preview and optionally sent to OCR.
  */
 import { useState, useRef, useCallback } from "react";
 import { MV } from "../theme";
@@ -23,12 +27,16 @@ export default function ScanPanel({
   onOverride,
   onReset,
   ocrEnabled,
+  scannerReady,
+  scannerSources,
+  scanError,
 }) {
   const [mode, setMode] = useState("scan");
   const [collapsed, setCollapsed] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [showScannerSettings, setShowScannerSettings] = useState(false);
   const [scannerSettings, setScannerSettings] = useState(DEFAULT_SCANNER_SETTINGS);
+  const [scanning, setScanning] = useState(false);
   const inputRef = useRef(null);
 
   const handleDrag = useCallback((e) => {
@@ -68,6 +76,26 @@ export default function ScanPanel({
     }
   };
 
+  /**
+   * Handle the "Scan Requisition" button click.
+   * Triggers TWAIN scanning via the onScanCapture callback provided by App.
+   */
+  const handleScanClick = async () => {
+    if (!onScanCapture) {
+      alert("TWAIN scanner not connected. Use Upload instead.");
+      return;
+    }
+
+    setScanning(true);
+    try {
+      await onScanCapture(scannerSettings);
+    } catch (err) {
+      console.error("[ScanPanel] Scan error:", err);
+    } finally {
+      setScanning(false);
+    }
+  };
+
   const handleModeSwitch = (m) => {
     setMode(m);
     onReset();
@@ -87,6 +115,7 @@ export default function ScanPanel({
   }
 
   const hasPreview = previewUrl != null;
+  const isScanning = scanning || loading;
 
   // Collapsed state — thin sidebar with expand button
   if (collapsed) {
@@ -146,7 +175,7 @@ export default function ScanPanel({
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Preview area */}
         <div className="flex-1 relative overflow-hidden">
-          {!hasPreview && !loading && (
+          {!hasPreview && !isScanning && (
             <div
               className="absolute inset-0 m-3 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
               style={{
@@ -175,6 +204,11 @@ export default function ScanPanel({
                   <div className="text-[13px] mt-1" style={{ color: MV.gray400 }}>
                     Drag & drop PDF or image, or click to browse
                   </div>
+                  {scannerReady && (
+                    <div className="text-[11px] mt-2" style={{ color: MV.tealDark }}>
+                      Or use the Scan button below
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center p-6">
@@ -190,7 +224,26 @@ export default function ScanPanel({
             </div>
           )}
 
-          {loading && !hasPreview && (
+          {/* Scanning spinner */}
+          {scanning && !hasPreview && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <div
+                  className="w-9 h-9 rounded-full mx-auto mb-3 animate-spin"
+                  style={{ border: `3px solid ${MV.gray200}`, borderTopColor: MV.gray900 }}
+                />
+                <div className="text-[15px] font-semibold" style={{ color: MV.text }}>
+                  Scanning...
+                </div>
+                <div className="text-[12px] mt-1" style={{ color: MV.textMuted }}>
+                  Acquiring document from scanner
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* OCR processing spinner */}
+          {loading && !scanning && !hasPreview && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
                 <div
@@ -256,6 +309,16 @@ export default function ScanPanel({
           )}
         </div>
 
+        {/* Scan error message */}
+        {scanError && !hasPreview && (
+          <div
+            className="mx-4 mb-2 px-3 py-2 rounded text-xs"
+            style={{ backgroundColor: MV.dangerLight, border: `1px solid ${MV.dangerBorder}`, color: MV.danger }}
+          >
+            {scanError}
+          </div>
+        )}
+
         {/* Scan + Upload buttons (when no preview) */}
         {!hasPreview && mode === "scan" && (
           <div className="px-4 pb-3 flex flex-col gap-2 relative">
@@ -265,24 +328,19 @@ export default function ScanPanel({
                 settings={scannerSettings}
                 onChange={setScannerSettings}
                 onClose={() => setShowScannerSettings(false)}
+                scannerSources={scannerSources}
               />
             )}
 
             {/* Scan Requisition + Gear */}
             <div className="flex gap-1.5">
               <button
-                disabled={loading}
+                disabled={isScanning}
                 className="py-[9px] rounded-md border-none cursor-pointer text-[13px] font-bold flex-1 disabled:opacity-50"
                 style={{ backgroundColor: MV.gray900, color: "#fff" }}
-                onClick={() => {
-                  if (onScanCapture) {
-                    onScanCapture(scannerSettings);
-                  } else {
-                    alert("TWAIN scanner not connected. Use Upload instead.");
-                  }
-                }}
+                onClick={handleScanClick}
               >
-                Scan Requisition
+                {scanning ? "Scanning..." : "Scan Requisition"}
               </button>
               <button
                 onClick={() => setShowScannerSettings(!showScannerSettings)}
@@ -300,7 +358,7 @@ export default function ScanPanel({
             {/* Upload Requisition */}
             <button
               onClick={() => inputRef.current?.click()}
-              disabled={loading}
+              disabled={isScanning}
               className="py-[9px] rounded-md border-none cursor-pointer text-[13px] font-bold w-full disabled:opacity-50"
               style={{
                 background: MV.greenGrad,

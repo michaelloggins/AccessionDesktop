@@ -64,3 +64,6 @@ docs/files.zip
 .playwright-mcp/
 *.png
 !frontend/public/*.png
+
+# Dynamsoft Web TWAIN resources (installed via npm, copied at build)
+frontend/public/dwt-resources/
